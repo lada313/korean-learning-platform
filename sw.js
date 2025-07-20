@@ -4,19 +4,24 @@ const urlsToCache = [
   '/index.html',
   '/styles.css',
   '/script.js',
-  // Добавьте другие ресурсы
+  '/data/words.json',
+  '/data/levels.json',
+  '/assets/icon-192.png',
+  '/assets/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-  );
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
+      .then(cache => {
+        return cache.addAll(urlsToCache.filter(url => {
+          // Пропускаем несуществующие URL
+          try {
+            return new URL(url).pathname;
+          } catch (e) {
+            return false;
+          }
+        }));
+      })
   );
 });
