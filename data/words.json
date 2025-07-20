@@ -1,0 +1,116 @@
+[
+  {
+    "word": "불국사",
+    "translation": "буддийский храм",
+    "example_korean": "불국사에 가다",
+    "example_translation": "Посетить храм Бульгукса"
+  },
+  {
+    "word": "남대문",
+    "translation": "дворец",
+    "example_korean": "남대문 앞에서 만나요",
+    "example_translation": "Встретимся у дворца Намдэмун"
+  },
+  {
+    "word": "롯데월드",
+    "translation": "парк развлечений Лотте",
+    "example_korean": "롯데월드에서 재미있게 놀았어요",
+    "example_translation": "Мы весело провели время в Лотте Ворлд"
+  },
+  {
+    "word": "통화",
+    "translation": "телефонный разговор",
+    "example_korean": "통화 중이에요",
+    "example_translation": "Я разговариваю по телефону"
+  },
+  {
+    "word": "짜리",
+    "translation": "стоимостью в...",
+    "example_korean": "이 노트북은 10만원 짜리예요",
+    "example_translation": "Этот ноутбук стоит 100 000 вон"
+  },
+  {
+    "word": "매",
+    "translation": "1) в секунду 2) ястреб 3) палка",
+    "example_korean": "매 초마다",
+    "example_translation": "Каждую секунду"
+  },
+  {
+    "word": "가지",
+    "translation": "1) вид 2) баклажан 3) ветка",
+    "example_korean": "가지 요리를 만들다",
+    "example_translation": "Готовить блюдо из баклажанов"
+  },
+  {
+    "word": "원",
+    "translation": "1) вона 2) круг",
+    "example_korean": "5000원 주세요",
+    "example_translation": "Дайте мне 5000 вон"
+  },
+  {
+    "word": "들다",
+    "translation": "1) входить 2) есть (офиц.)",
+    "example_korean": "방에 들다",
+    "example_translation": "Войти в комнату"
+  },
+  {
+    "word": "놓다",
+    "translation": "1) бросать 2) класть",
+    "example_korean": "책을 책상에 놓다",
+    "example_translation": "Положить книгу на стол"
+  },
+  {
+    "word": "내리다",
+    "translation": "1) выходить 2) спускаться",
+    "example_korean": "버스에서 내리다",
+    "example_translation": "Выйти из автобуса"
+  },
+  {
+    "word": "나다",
+    "translation": "1) появляться 2) возникать",
+    "example_korean": "문제가 나다",
+    "example_translation": "Возникла проблема"
+  },
+  {
+    "word": "이",
+    "translation": "1) два (кит.) 2) зуб",
+    "example_korean": "이가 아파요",
+    "example_translation": "У меня болит зуб"
+  },
+  {
+    "word": "일",
+    "translation": "1) работа 2) день",
+    "example_korean": "일이 많아요",
+    "example_translation": "Много работы"
+  },
+  {
+    "word": "싸다",
+    "translation": "1) дешёвый 2) заворачивать",
+    "example_korean": "싸게 사다",
+    "example_translation": "Купить дёшево"
+  },
+  {
+    "word": "배",
+    "translation": "1) груша 2) корабль 3) живот",
+    "example_korean": "배가 아파요",
+    "example_translation": "Болит живот"
+  },
+  {
+    "word": "조각",
+    "translation": "1) кусок 2) скульптура",
+    "example_korean": "피자 한 조각",
+    "example_translation": "Кусок пиццы"
+  },
+  {
+    "word": "약",
+    "translation": "1) лекарство 2) примерно",
+    "example_korean": "약을 먹다",
+    "example_translation": "Принять лекарство"
+  },
+  {
+    "word": "장",
+    "translation": "1) лист 2) кишечник",
+    "example_korean": "종이 한 장",
+    "example_translation": "Один лист бумаги"
+  }
+]
