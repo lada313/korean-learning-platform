@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korean Learning Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-language"></i>
+                <span>KoreanMaster</span>
+            </div>
+            <div class="user-profile">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+        <div class="progress-info">
+            <span>42% завершено</span>
+            <span>Уровень 84</span>
+        </div>
+    </header>
+    
+    <div class="container" id="mainContent">
+        <!-- Контент будет подгружаться динамически -->
+    </div>
+    
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" onclick="showHome()">
+            <i class="fas fa-home"></i>
+            <span>Главная</span>
+        </a>
+        <a href="#" class="nav-item" onclick="openCards()">
+            <i class="fas fa-book"></i>
+            <span>Учеба</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showProgress()">
+            <i class="fas fa-chart-line"></i>
+            <span>Прогресс</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showSettings()">
+            <i class="fas fa-cog"></i>
+            <span>Настройки</span>
+        </a>
+    </nav>
+
+    <script src="script.js"></script>
+    <script src="cards.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
