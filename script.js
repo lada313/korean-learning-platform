@@ -145,21 +145,30 @@ function showCurrentCard(dueWords) {
             <div class="card-inner">
                 <div class="card-front">
                     <div class="word-korean">${currentWord.korean}</div>
+                    <div class="word-romanization">${currentWord.romanization}</div>
                     <button class="speak-btn" onclick="speakWord(event, '${currentWord.korean}')">
                         <i class="fas fa-volume-up"></i>
                     </button>
                 </div>
                 <div class="card-back">
                     <div class="word-translation">${currentWord.translation}</div>
+                    ${currentWord.examples.map(ex => `
+                        <div class="example-container">
+                            <div class="example-korean">${ex.korean}</div>
+                            <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         </div>
         <div class="card-controls">
             <button class="card-btn" onclick="handleCardResponse('again', ${currentWord.id})">
-                Снова
+                <i class="fas fa-redo"></i> Снова
             </button>
-            <button class="card-btn" onclick="handleCardResponse('easy', ${currentWord.id})">
-                Знаю
+            <button class="card-btn" onclick="handleCardResponse('easy', ${currentWord.id}); speakWord(event, '${currentWord.korean}')">
+                <i class="fas fa-check-circle"></i> Знаю
             </button>
         </div>
     `;
@@ -224,11 +233,11 @@ function updateActiveNav(section) {
     });
 }
 
-function speakWord(event, text) {
+function speakWord(event, text, lang = 'ko-KR') {
     event.stopPropagation();
     if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
+        utterance.lang = lang;
         window.speechSynthesis.speak(utterance);
     }
 }
