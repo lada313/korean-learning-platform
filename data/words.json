@@ -1,116 +1,192 @@
 [
   {
-    "word": "불국사",
+    "id": 1,
+    "korean": "불국사",
     "translation": "буддийский храм",
-    "example_korean": "불국사에 가다",
-    "example_translation": "Посетить храм Бульгукса"
+    "romanization": "bulguksa",
+    "level": 2,
+    "examples": [
+      {"korean": "불국사에 가다", "translation": "Посетить храм Бульгукса"}
+    ]
   },
   {
-    "word": "남대문",
+    "id": 2,
+    "korean": "남대문",
     "translation": "дворец",
-    "example_korean": "남대문 앞에서 만나요",
-    "example_translation": "Встретимся у дворца Намдэмун"
+    "romanization": "namdaemun",
+    "level": 2,
+    "examples": [
+      {"korean": "남대문 앞에서 만나요", "translation": "Встретимся у дворца Намдэмун"}
+    ]
   },
   {
-    "word": "롯데월드",
+    "id": 3,
+    "korean": "롯데월드",
     "translation": "парк развлечений Лотте",
-    "example_korean": "롯데월드에서 재미있게 놀았어요",
-    "example_translation": "Мы весело провели время в Лотте Ворлд"
+    "romanization": "roteuwoldeu",
+    "level": 1,
+    "examples": [
+      {"korean": "롯데월드에서 재미있게 놀았어요", "translation": "Мы весело провели время в Лотте Ворлд"}
+    ]
   },
   {
-    "word": "통화",
+    "id": 4,
+    "korean": "통화",
     "translation": "телефонный разговор",
-    "example_korean": "통화 중이에요",
-    "example_translation": "Я разговариваю по телефону"
+    "romanization": "tonghwa",
+    "level": 1,
+    "examples": [
+      {"korean": "통화 중이에요", "translation": "Я разговариваю по телефону"}
+    ]
   },
   {
-    "word": "짜리",
+    "id": 5,
+    "korean": "짜리",
     "translation": "стоимостью в...",
-    "example_korean": "이 노트북은 10만원 짜리예요",
-    "example_translation": "Этот ноутбук стоит 100 000 вон"
+    "romanization": "jjari",
+    "level": 2,
+    "examples": [
+      {"korean": "이 노트북은 10만원 짜리예요", "translation": "Этот ноутбук стоит 100 000 вон"}
+    ]
   },
   {
-    "word": "매",
+    "id": 6,
+    "korean": "매",
     "translation": "1) в секунду 2) ястреб 3) палка",
-    "example_korean": "매 초마다",
-    "example_translation": "Каждую секунду"
+    "romanization": "mae",
+    "level": 3,
+    "examples": [
+      {"korean": "매 초마다", "translation": "Каждую секунду"}
+    ]
   },
   {
-    "word": "가지",
+    "id": 7,
+    "korean": "가지",
     "translation": "1) вид 2) баклажан 3) ветка",
-    "example_korean": "가지 요리를 만들다",
-    "example_translation": "Готовить блюдо из баклажанов"
+    "romanization": "gaji",
+    "level": 2,
+    "examples": [
+      {"korean": "가지 요리를 만들다", "translation": "Готовить блюдо из баклажанов"}
+    ]
   },
   {
-    "word": "원",
+    "id": 8,
+    "korean": "원",
     "translation": "1) вона 2) круг",
-    "example_korean": "5000원 주세요",
-    "example_translation": "Дайте мне 5000 вон"
+    "romanization": "won",
+    "level": 1,
+    "examples": [
+      {"korean": "5000원 주세요", "translation": "Дайте мне 5000 вон"}
+    ]
   },
   {
-    "word": "들다",
+    "id": 9,
+    "korean": "들다",
     "translation": "1) входить 2) есть (офиц.)",
-    "example_korean": "방에 들다",
-    "example_translation": "Войти в комнату"
+    "romanization": "deulda",
+    "level": 2,
+    "examples": [
+      {"korean": "방에 들다", "translation": "Войти в комнату"}
+    ]
   },
   {
-    "word": "놓다",
+    "id": 10,
+    "korean": "놓다",
     "translation": "1) бросать 2) класть",
-    "example_korean": "책을 책상에 놓다",
-    "example_translation": "Положить книгу на стол"
+    "romanization": "nota",
+    "level": 2,
+    "examples": [
+      {"korean": "책을 책상에 놓다", "translation": "Положить книгу на стол"}
+    ]
   },
   {
-    "word": "내리다",
+    "id": 11,
+    "korean": "내리다",
     "translation": "1) выходить 2) спускаться",
-    "example_korean": "버스에서 내리다",
-    "example_translation": "Выйти из автобуса"
+    "romanization": "naerida",
+    "level": 2,
+    "examples": [
+      {"korean": "버스에서 내리다", "translation": "Выйти из автобуса"}
+    ]
   },
   {
-    "word": "나다",
+    "id": 12,
+    "korean": "나다",
     "translation": "1) появляться 2) возникать",
-    "example_korean": "문제가 나다",
-    "example_translation": "Возникла проблема"
+    "romanization": "nada",
+    "level": 3,
+    "examples": [
+      {"korean": "문제가 나다", "translation": "Возникла проблема"}
+    ]
   },
   {
-    "word": "이",
+    "id": 13,
+    "korean": "이",
     "translation": "1) два (кит.) 2) зуб",
-    "example_korean": "이가 아파요",
-    "example_translation": "У меня болит зуб"
+    "romanization": "i",
+    "level": 1,
+    "examples": [
+      {"korean": "이가 아파요", "translation": "У меня болит зуб"}
+    ]
   },
   {
-    "word": "일",
+    "id": 14,
+    "korean": "일",
     "translation": "1) работа 2) день",
-    "example_korean": "일이 많아요",
-    "example_translation": "Много работы"
+    "romanization": "il",
+    "level": 1,
+    "examples": [
+      {"korean": "일이 많아요", "translation": "Много работы"}
+    ]
   },
   {
-    "word": "싸다",
+    "id": 15,
+    "korean": "싸다",
     "translation": "1) дешёвый 2) заворачивать",
-    "example_korean": "싸게 사다",
-    "example_translation": "Купить дёшево"
+    "romanization": "ssada",
+    "level": 2,
+    "examples": [
+      {"korean": "싸게 사다", "translation": "Купить дёшево"}
+    ]
   },
   {
-    "word": "배",
+    "id": 16,
+    "korean": "배",
     "translation": "1) груша 2) корабль 3) живот",
-    "example_korean": "배가 아파요",
-    "example_translation": "Болит живот"
+    "romanization": "bae",
+    "level": 2,
+    "examples": [
+      {"korean": "배가 아파요", "translation": "Болит живот"}
+    ]
   },
   {
-    "word": "조각",
+    "id": 17,
+    "korean": "조각",
     "translation": "1) кусок 2) скульптура",
-    "example_korean": "피자 한 조각",
-    "example_translation": "Кусок пиццы"
+    "romanization": "jogak",
+    "level": 2,
+    "examples": [
+      {"korean": "피자 한 조각", "translation": "Кусок пиццы"}
+    ]
   },
   {
-    "word": "약",
+    "id": 18,
+    "korean": "약",
     "translation": "1) лекарство 2) примерно",
-    "example_korean": "약을 먹다",
-    "example_translation": "Принять лекарство"
+    "romanization": "yak",
+    "level": 1,
+    "examples": [
+      {"korean": "약을 먹다", "translation": "Принять лекарство"}
+    ]
   },
   {
-    "word": "장",
+    "id": 19,
+    "korean": "장",
     "translation": "1) лист 2) кишечник",
-    "example_korean": "종이 한 장",
-    "example_translation": "Один лист бумаги"
+    "romanization": "jang",
+    "level": 2,
+    "examples": [
+      {"korean": "종이 한 장", "translation": "Один лист бумаги"}
+    ]
   }
 ]
