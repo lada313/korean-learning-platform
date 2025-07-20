@@ -4,8 +4,7 @@ let userProgress = {
     difficultWords: [],
     completedLevels: [],
     currentLevel: 1,
-    cardIntervals: {},
-    lastReviewDate: null
+    cardIntervals: {}
 };
 
 let allWords = [];
@@ -52,30 +51,20 @@ function loadUserProgress() {
 }
 
 function saveUserProgress() {
-    userProgress.lastReviewDate = new Date().toISOString();
     localStorage.setItem('koreanPlatformProgress', JSON.stringify(userProgress));
     updateProgressUI();
 }
 
 function updateProgressUI() {
-    const totalWords = allWords.length;
-    const knownCount = userProgress.knownWords.length;
-    const progressPercent = totalWords > 0 ? Math.floor((knownCount / totalWords) * 100) : 0;
-    
-    if (document.querySelector('.progress-bar')) {
-        document.querySelector('.progress-bar').style.width = `${progressPercent}%`;
-        document.querySelector('.progress-info span:first-child').textContent = `${progressPercent}% завершено`;
-        document.querySelector('.progress-info span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
-    }
+    const progressPercent = Math.floor((userProgress.knownWords.length / allWords.length) * 100) || 0;
+    document.querySelector('.progress-bar').style.width = `${progressPercent}%`;
+    document.querySelector('.progress-info span:first-child').textContent = `${progressPercent}% завершено`;
+    document.querySelector('.progress-info span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
 }
 
 // Навигация
 function showHomePage() {
-    const wordsForReview = getDueWords().slice(0, 6);
-    const recentLevels = allLevels.slice(0, 10);
-    
     document.getElementById('mainContent').innerHTML = `
-        <!-- Ваш HTML код главной страницы -->
         <div class="section-title">
             <h2>Учебные модули</h2>
         </div>
@@ -95,26 +84,8 @@ function showHomePage() {
                 <h3>Карточки</h3>
                 <p>Повторение слов</p>
             </div>
-            
-            <!-- Остальные карточки -->
-        </div>
-        
-        <div class="section-title">
-            <h2>Повторение слов</h2>
-            <div class="daily-count">${wordsForReview.length} слов</div>
-        </div>
-        <div class="daily-container">
-            <div class="word-list">
-                ${wordsForReview.map(word => `
-                    <div class="word-preview-card" onclick="showWordCard(${word.id})">
-                        <div class="word-preview-korean">${word.korean}</div>
-                        <div class="word-preview-translation">${word.translation}</div>
-                    </div>
-                `).join('')}
-            </div>
         </div>
     `;
-    
     updateActiveNav('home');
 }
 
@@ -141,6 +112,11 @@ function showCurrentCard(dueWords) {
     const currentWord = dueWords[currentCardIndex];
     
     document.getElementById('mainContent').innerHTML = `
+        <div class="section-title">
+            <h2>Карточки для повторения</h2>
+            <div class="view-all" onclick="showHomePage()">На главную</div>
+        </div>
+        
         <div class="word-card" onclick="flipCard(this)">
             <div class="card-inner">
                 <div class="card-front">
@@ -163,6 +139,7 @@ function showCurrentCard(dueWords) {
                 </div>
             </div>
         </div>
+        
         <div class="card-controls">
             <button class="card-btn" onclick="handleCardResponse('again', ${currentWord.id})">
                 <i class="fas fa-redo"></i> Снова
@@ -194,7 +171,7 @@ function handleCardResponse(response, wordId) {
     if (currentCardIndex < dueWords.length) {
         showCurrentCard(dueWords);
     } else {
-        showCardsPage(); // Вернёт на экран "Нет слов для повторения"
+        showCardsPage();
     }
 }
 
@@ -233,35 +210,19 @@ function updateActiveNav(section) {
     });
 }
 
-function speakWord(event, text, lang = 'ko-KR') {
-    event.stopPropagation();
+function speakWord(event, text) {
+    event?.stopPropagation();
     if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang;
+        utterance.lang = 'ko-KR';
         window.speechSynthesis.speak(utterance);
     }
-}
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('ServiceWorker registration successful');
-      })
-      .catch(err => {
-        console.log('ServiceWorker registration failed: ', err);
-      });
-  });
 }
 
 // Экспорт функций для HTML
 window.showHomePage = showHomePage;
 window.showCardsPage = showCardsPage;
-window.showLevelsPage = () => showHomePage(); // Заглушка
+window.showLevelsPage = () => alert("Раздел в разработке");
+window.showProgressPage = () => alert("Раздел в разработке");
 window.flipCard = flipCard;
 window.speakWord = speakWord;
-window.showWordCard = (id) => {
-    const word = allWords.find(w => w.id === id);
-    if (word) {
-        alert(`Слово: ${word.korean}\nПеревод: ${word.translation}`);
-    }
-};
