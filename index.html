@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50">
 </head>
 <body>
     <header>
@@ -23,13 +24,13 @@
             <div class="progress-bar"></div>
         </div>
         <div class="progress-info">
-            <span>42% завершено</span>
-            <span>Уровень 84</span>
+            <span>0% завершено</span>
+            <span>Уровень 1</span>
         </div>
     </header>
     
     <div class="container" id="mainContent">
-        <!-- Контент будет подгружаться динамически -->
+        <!-- Контент будет загружен через script.js -->
     </div>
     
     <nav class="bottom-nav">
@@ -37,24 +38,28 @@
             <i class="fas fa-home"></i>
             <span>Главная</span>
         </a>
-        <a href="#" class="nav-item" onclick="openCards()">
+        <a href="#" class="nav-item" onclick="showCardsPage()">
             <i class="fas fa-book"></i>
             <span>Учеба</span>
         </a>
-        <a href="#" class="nav-item" onclick="showProgress()">
+        <a href="#" class="nav-item" onclick="showProgressPage()">
             <i class="fas fa-chart-line"></i>
             <span>Прогресс</span>
-        </a>
-        <a href="#" class="nav-item" onclick="showSettings()">
-            <i class="fas fa-cog"></i>
-            <span>Настройки</span>
         </a>
     </nav>
 
     <script src="script.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registered');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
         }
     </script>
 </body>
