@@ -10,16 +10,16 @@ let userProgress = {
 
 let allWords = [];
 let allLevels = [];
-let currentCardIndex = 0; // Перенесено из cards.js
+let currentCardIndex = 0;
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
     loadUserProgress();
     loadData().then(() => {
         showHomePage();
-        setupEventListeners();
     });
     
+    // Инициализация синтеза речи
     if ('speechSynthesis' in window) {
         window.speechSynthesis.onvoiceschanged = function() {
             console.log("Голоса загружены");
@@ -30,10 +30,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // Загрузка данных
 async function loadData() {
     try {
-        const wordsResponse = await fetch('data/words.json');
-        allWords = await wordsResponse.json();
+        const [wordsResponse, levelsResponse] = await Promise.all([
+            fetch('data/words.json'),
+            fetch('data/levels.json')
+        ]);
         
-        const levelsResponse = await fetch('data/levels.json');
+        allWords = await wordsResponse.json();
         allLevels = await levelsResponse.json();
     } catch (error) {
         console.error("Ошибка загрузки данных:", error);
@@ -56,13 +58,15 @@ function saveUserProgress() {
 }
 
 function updateProgressUI() {
-    const progressPercent = allWords.length > 0 
-        ? Math.floor((userProgress.knownWords.length / allWords.length) * 100)
-        : 0;
+    const totalWords = allWords.length;
+    const knownCount = userProgress.knownWords.length;
+    const progressPercent = totalWords > 0 ? Math.floor((knownCount / totalWords) * 100) : 0;
     
-    document.querySelector('.progress-bar').style.width = `${progressPercent}%`;
-    document.querySelector('.progress-info span:first-child').textContent = `${progressPercent}% завершено`;
-    document.querySelector('.progress-info span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
+    if (document.querySelector('.progress-bar')) {
+        document.querySelector('.progress-bar').style.width = `${progressPercent}%`;
+        document.querySelector('.progress-info span:first-child').textContent = `${progressPercent}% завершено`;
+        document.querySelector('.progress-info span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
+    }
 }
 
 // Навигация
@@ -72,6 +76,43 @@ function showHomePage() {
     
     document.getElementById('mainContent').innerHTML = `
         <!-- Ваш HTML код главной страницы -->
+        <div class="section-title">
+            <h2>Учебные модули</h2>
+        </div>
+        <div class="cards-grid">
+            <div class="card" onclick="showLevelsPage()">
+                <div class="card-icon levels">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3>Уровни</h3>
+                <p>${allLevels.length} уровней</p>
+            </div>
+            
+            <div class="card" onclick="showCardsPage()">
+                <div class="card-icon cards">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <h3>Карточки</h3>
+                <p>Повторение слов</p>
+            </div>
+            
+            <!-- Остальные карточки -->
+        </div>
+        
+        <div class="section-title">
+            <h2>Повторение слов</h2>
+            <div class="daily-count">${wordsForReview.length} слов</div>
+        </div>
+        <div class="daily-container">
+            <div class="word-list">
+                ${wordsForReview.map(word => `
+                    <div class="word-preview-card" onclick="showWordCard(${word.id})">
+                        <div class="word-preview-korean">${word.korean}</div>
+                        <div class="word-preview-translation">${word.translation}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
     `;
     
     updateActiveNav('home');
@@ -79,69 +120,46 @@ function showHomePage() {
 
 function showCardsPage() {
     const dueWords = getDueWords();
-    currentCardIndex = 0; // Сбрасываем индекс при открытии страницы
+    currentCardIndex = 0;
     
     if (dueWords.length === 0) {
-        showNoCardsMessage();
+        document.getElementById('mainContent').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <h3>Нет слов для повторения</h3>
+                <button class="card-btn" onclick="showHomePage()">На главную</button>
+            </div>
+        `;
         return;
     }
     
     showCurrentCard(dueWords);
+    updateActiveNav('study');
 }
 
 function showCurrentCard(dueWords) {
     const currentWord = dueWords[currentCardIndex];
     
     document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Карточки для повторения</h2>
-            <div class="view-all" onclick="showHomePage()">На главную</div>
-        </div>
-        
         <div class="word-card" onclick="flipCard(this)">
             <div class="card-inner">
                 <div class="card-front">
                     <div class="word-korean">${currentWord.korean}</div>
-                    <div class="word-romanization">${currentWord.romanization}</div>
-                    <div class="word-level">Уровень ${currentWord.level}</div>
                     <button class="speak-btn" onclick="speakWord(event, '${currentWord.korean}')">
                         <i class="fas fa-volume-up"></i>
                     </button>
                 </div>
                 <div class="card-back">
                     <div class="word-translation">${currentWord.translation}</div>
-                    ${currentWord.examples.map(ex => `
-                        <div class="example">
-                            <div>${ex.korean}</div>
-                            <div>${ex.translation}</div>
-                        </div>
-                    `).join('')}
                 </div>
             </div>
         </div>
-        
         <div class="card-controls">
             <button class="card-btn" onclick="handleCardResponse('again', ${currentWord.id})">
-                <i class="fas fa-redo"></i> Снова
-            </button>
-            <button class="card-btn" onclick="handleCardResponse('hard', ${currentWord.id})">
-                <i class="fas fa-hourglass-half"></i> Трудно
+                Снова
             </button>
             <button class="card-btn" onclick="handleCardResponse('easy', ${currentWord.id})">
-                <i class="fas fa-smile"></i> Легко
-            </button>
-        </div>
-    `;
-}
-
-function showNoCardsMessage() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="empty-state">
-            <i class="fas fa-check-circle"></i>
-            <h3>Повторений нет!</h3>
-            <p>Все слова повторены. Возвращайтесь позже.</p>
-            <button class="card-btn" onclick="showHomePage()">
-                На главную
+                Знаю
             </button>
         </div>
     `;
@@ -167,7 +185,7 @@ function handleCardResponse(response, wordId) {
     if (currentCardIndex < dueWords.length) {
         showCurrentCard(dueWords);
     } else {
-        showNoCardsMessage();
+        showCardsPage(); // Вернёт на экран "Нет слов для повторения"
     }
 }
 
@@ -215,24 +233,15 @@ function speakWord(event, text) {
     }
 }
 
-function setupEventListeners() {
-    // Можно добавить глобальные обработчики
-}
-
 // Экспорт функций для HTML
 window.showHomePage = showHomePage;
 window.showCardsPage = showCardsPage;
+window.showLevelsPage = () => showHomePage(); // Заглушка
 window.flipCard = flipCard;
 window.speakWord = speakWord;
-
-// Заглушки для остальных функций
-window.showLevelsPage = () => alert("Раздел уровней в разработке");
-window.showGrammarPage = () => alert("Раздел грамматики в разработке");
-window.showTextsPage = () => alert("Раздел текстов в разработке");
-window.showTestsPage = () => alert("Раздел тестов в разработке");
-window.showWritingPage = () => alert("Раздел прописей в разработке");
-window.startLevel = (levelId) => {
-    userProgress.currentLevel = levelId;
-    saveUserProgress();
-    alert(`Начало уровня ${levelId}`);
+window.showWordCard = (id) => {
+    const word = allWords.find(w => w.id === id);
+    if (word) {
+        alert(`Слово: ${word.korean}\nПеревод: ${word.translation}`);
+    }
 };
