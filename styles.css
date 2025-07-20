@@ -297,10 +297,10 @@ header {
 /* Word Cards */
 .word-card {
   width: 100%;
-  max-width: 500px;
-  height: 300px;
-  margin: 0 auto 20px;
-  perspective: 1000px;
+    max-width: 500px;
+    height: 350px; /* Увеличили высоту */
+    margin: 0 auto 20px;
+    perspective: 1000px;
 }
 
 .card-inner {
@@ -343,15 +343,19 @@ header {
 }
 
 .word-korean {
-  font-size: 2.2rem;
-  margin-bottom: 10px;
-  font-weight: bold;
+  font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    -webkit-font-smoothing: antialiased; /* Убирает размытость */
 }
 
 .word-translation {
-  font-size: 1.8rem;
-  margin-bottom: 15px;
-  color: var(--primary-dark);
+  font-size: 2rem;
+    margin-bottom: 20px;
+    color: var(--primary-dark);
+    font-weight: bold;
 }
 
 .word-romanization {
@@ -500,6 +504,47 @@ header {
   color: var(--accent);
   margin-top: 4px;
   font-weight: 500;
+}
+/* Контейнер для примеров */
+.example-container {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    padding: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    width: 100%;
+}
+
+.example-korean {
+    font-size: 1.2rem;
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+/* Кнопки озвучки */
+.speak-btn, .speak-example-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.speak-example-btn {
+    background: rgba(0,0,0,0.1);
+    color: var(--primary);
+}
+
+.speak-btn:hover, .speak-example-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.1);
 }
 
 /* Bottom Navigation */
