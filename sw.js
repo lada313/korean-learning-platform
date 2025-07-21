@@ -1,11 +1,13 @@
-const CACHE_NAME = 'korean-platform-v3';
+const CACHE_NAME = 'korean-platform-v4';
 const urlsToCache = [
   './',
   './index.html',
   './styles.css',
   './script.js',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './data/words.json',
+  './data/levels.json'
 ];
 
 self.addEventListener('install', event => {
@@ -13,7 +15,7 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        return cache.addAll(urlsToCache.map(url => new Request(url, {cache: 'reload'})));
       })
       .catch(err => {
         console.log('Cache addAll error:', err);
