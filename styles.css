@@ -130,15 +130,9 @@ header {
 /* Cards Grid */
 .cards-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
     margin-bottom: 25px;
-}
-
-@media (min-width: 480px) {
-    .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
 }
 
 .card {
@@ -180,6 +174,16 @@ header {
 .card-icon.cards {
     background-color: rgba(33, 150, 243, 0.15);
     color: var(--secondary);
+}
+
+.card-icon.grammar {
+    background-color: rgba(255, 152, 0, 0.15);
+    color: var(--accent);
+}
+
+.card-icon.text {
+    background-color: rgba(156, 39, 176, 0.15);
+    color: #9c27b0;
 }
 
 .card h3 {
@@ -339,6 +343,70 @@ header {
     transform: translateY(0);
 }
 
+/* Daily Review Section */
+.daily-container {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    margin-bottom: 25px;
+    border-left: 4px solid var(--accent);
+}
+
+.daily-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.daily-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.daily-count {
+    background-color: var(--accent);
+    color: white;
+    border-radius: 15px;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.word-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.word-preview-card {
+    background-color: #fff8e1;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.word-preview-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.word-preview-korean {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: var(--text-dark);
+}
+
+.word-preview-translation {
+    font-size: 0.8rem;
+    color: var(--text-medium);
+}
+
 /* Empty State */
 .empty-state {
     text-align: center;
@@ -410,5 +478,9 @@ header {
     .card-btn {
         padding: 10px 15px;
         font-size: 0.9rem;
+    }
+    
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     }
 }
