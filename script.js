@@ -10,6 +10,7 @@ let userProgress = {
 let allWords = [];
 let allLevels = [];
 let currentCardIndex = 0;
+let flashcards = [];
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
@@ -18,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
         showHomePage();
     });
     
-    // Инициализация синтеза речи
     if ('speechSynthesis' in window) {
         window.speechSynthesis.onvoiceschanged = function() {
             console.log("Голоса загружены");
@@ -56,14 +56,22 @@ function saveUserProgress() {
 }
 
 function updateProgressUI() {
-    const progressPercent = Math.floor((userProgress.knownWords.length / allWords.length) * 100) || 0;
-    document.querySelector('.progress-bar').style.width = `${progressPercent}%`;
-    document.querySelector('.progress-info span:first-child').textContent = `${progressPercent}% завершено`;
-    document.querySelector('.progress-info span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
+    const progressPercent = allWords.length > 0 
+        ? Math.floor((userProgress.knownWords.length / allWords.length) * 100)
+        : 0;
+    
+    if (document.querySelector('.progress-bar')) {
+        document.querySelector('.progress-bar').style.width = `${progressPercent}%`;
+        document.querySelector('.progress-info span:first-child').textContent = `${progressPercent}% завершено`;
+        document.querySelector('.progress-info span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
+    }
 }
 
 // Навигация
 function showHomePage() {
+    const wordsForReview = getDueWords().slice(0, 6);
+    const recentLevels = allLevels.slice(0, 10);
+    
     document.getElementById('mainContent').innerHTML = `
         <div class="section-title">
             <h2>Учебные модули</h2>
@@ -84,16 +92,60 @@ function showHomePage() {
                 <h3>Карточки</h3>
                 <p>Повторение слов</p>
             </div>
+            
+            <div class="card" onclick="showGrammarPage()">
+                <div class="card-icon grammar">
+                    <i class="fas fa-pen-nib"></i>
+                </div>
+                <h3>Грамматика</h3>
+                <p>Правила и примеры</p>
+            </div>
+            
+            <div class="card" onclick="showTextsPage()">
+                <div class="card-icon text">
+                    <i class="fas fa-font"></i>
+                </div>
+                <h3>Тексты</h3>
+                <p>Чтение и перевод</p>
+            </div>
+        </div>
+        
+        <div class="section-title">
+            <h2>Повторение слов</h2>
+            <div class="daily-count">${wordsForReview.length} слов</div>
+        </div>
+        <div class="daily-container">
+            <div class="word-list">
+                ${wordsForReview.length > 0 ? 
+                    wordsForReview.map(word => `
+                        <div class="word-preview-card" onclick="showWordCard(${word.id})">
+                            <div class="word-preview-korean">${word.korean}</div>
+                            <div class="word-preview-translation">${word.translation}</div>
+                        </div>
+                    `).join('') : 
+                    '<p class="empty-message">Нет слов для повторения</p>'
+                }
+            </div>
         </div>
     `;
+    
     updateActiveNav('home');
 }
 
 function showCardsPage() {
-    const dueWords = getDueWords();
+    flashcards = getDueWords();
     currentCardIndex = 0;
     
-    if (dueWords.length === 0) {
+    if (flashcards.length === 0) {
+        flashcards = allWords.slice(0, 5); // Показываем первые 5 слов если нет для повторения
+    }
+    
+    renderFlashcard();
+    updateActiveNav('study');
+}
+
+function renderFlashcard() {
+    if (flashcards.length === 0) {
         document.getElementById('mainContent').innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-check-circle"></i>
@@ -104,13 +156,7 @@ function showCardsPage() {
         return;
     }
     
-    showCurrentCard(dueWords);
-    updateActiveNav('study');
-}
-
-function showCurrentCard(dueWords) {
-    const currentWord = dueWords[currentCardIndex];
-    
+    const word = flashcards[currentCardIndex];
     document.getElementById('mainContent').innerHTML = `
         <div class="section-title">
             <h2>Карточки для повторения</h2>
@@ -120,15 +166,15 @@ function showCurrentCard(dueWords) {
         <div class="word-card" onclick="flipCard(this)">
             <div class="card-inner">
                 <div class="card-front">
-                    <div class="word-korean">${currentWord.korean}</div>
-                    <div class="word-romanization">${currentWord.romanization}</div>
-                    <button class="speak-btn" onclick="speakWord(event, '${currentWord.korean}')">
+                    <div class="word-korean">${word.korean}</div>
+                    <div class="word-romanization">${word.romanization}</div>
+                    <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
                         <i class="fas fa-volume-up"></i>
                     </button>
                 </div>
                 <div class="card-back">
-                    <div class="word-translation">${currentWord.translation}</div>
-                    ${currentWord.examples.map(ex => `
+                    <div class="word-translation">${word.translation}</div>
+                    ${word.examples.map(ex => `
                         <div class="example-container">
                             <div class="example-korean">${ex.korean}</div>
                             <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
@@ -141,11 +187,63 @@ function showCurrentCard(dueWords) {
         </div>
         
         <div class="card-controls">
-            <button class="card-btn" onclick="handleCardResponse('again', ${currentWord.id})">
+            <button class="card-btn" onclick="nextCard(false)">
                 <i class="fas fa-redo"></i> Снова
             </button>
-            <button class="card-btn" onclick="handleCardResponse('easy', ${currentWord.id}); speakWord(event, '${currentWord.korean}')">
+            <button class="card-btn" onclick="nextCard(true); speakWord(null, '${word.korean}')">
                 <i class="fas fa-check-circle"></i> Знаю
+            </button>
+        </div>
+    `;
+}
+
+function nextCard(know) {
+    if (know) {
+        const wordId = flashcards[currentCardIndex].id;
+        if (!userProgress.knownWords.includes(wordId)) {
+            userProgress.knownWords.push(wordId);
+            saveUserProgress();
+        }
+    }
+    
+    currentCardIndex++;
+    if (currentCardIndex < flashcards.length) {
+        renderFlashcard();
+    } else {
+        showCardsPage();
+    }
+}
+
+function showWordCard(wordId) {
+    const word = allWords.find(w => w.id === wordId);
+    if (!word) return;
+    
+    document.getElementById('mainContent').innerHTML = `
+        <div class="word-card" onclick="flipCard(this)">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="word-korean">${word.korean}</div>
+                    <div class="word-romanization">${word.romanization}</div>
+                    <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+                <div class="card-back">
+                    <div class="word-translation">${word.translation}</div>
+                    ${word.examples.map(ex => `
+                        <div class="example-container">
+                            <div class="example-korean">${ex.korean}</div>
+                            <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        <div class="card-controls">
+            <button class="card-btn" onclick="showHomePage()">
+                <i class="fas fa-arrow-left"></i> Назад
             </button>
         </div>
     `;
@@ -154,25 +252,6 @@ function showCurrentCard(dueWords) {
 // Работа с карточками
 function flipCard(cardElement) {
     cardElement.classList.toggle('flipped');
-}
-
-function handleCardResponse(response, wordId) {
-    updateCardInterval(wordId, response);
-    
-    if (response === 'easy' && !userProgress.knownWords.includes(wordId)) {
-        userProgress.knownWords.push(wordId);
-    }
-    
-    saveUserProgress();
-    
-    const dueWords = getDueWords();
-    currentCardIndex++;
-    
-    if (currentCardIndex < dueWords.length) {
-        showCurrentCard(dueWords);
-    } else {
-        showCardsPage();
-    }
 }
 
 function getDueWords() {
@@ -219,10 +298,17 @@ function speakWord(event, text) {
     }
 }
 
+// Заглушки для остальных функций
+function showLevelsPage() { alert("Раздел уровней в разработке"); }
+function showGrammarPage() { alert("Раздел грамматики в разработке"); }
+function showTextsPage() { alert("Раздел текстов в разработке"); }
+function showProgressPage() { alert("Раздел прогресса в разработке"); }
+function showSettingsPage() { alert("Раздел настроек в разработке"); }
+
 // Экспорт функций для HTML
 window.showHomePage = showHomePage;
 window.showCardsPage = showCardsPage;
-window.showLevelsPage = () => alert("Раздел в разработке");
-window.showProgressPage = () => alert("Раздел в разработке");
+window.showWordCard = showWordCard;
 window.flipCard = flipCard;
+window.nextCard = nextCard;
 window.speakWord = speakWord;
