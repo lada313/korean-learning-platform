@@ -278,6 +278,50 @@ function updateCardInterval(cardId, response) {
         interval: intervals[response]
     };
 }
+// Добавляем новые функции для работы со словарем
+function showDictionaryPage() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="dictionary-container">
+            <div class="search-box">
+                <input type="text" id="wordSearch" placeholder="Поиск по корейскому или русскому..." oninput="filterWords()">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="word-list" id="dictionaryList">
+                ${generateWordList(allWords)}
+            </div>
+        </div>
+    `;
+    updateActiveNav('study');
+}
+
+function generateWordList(words) {
+    return words.map(word => `
+        <div class="word-item">
+            <div class="word-content">
+                <span class="word-korean">${word.korean}</span>
+                <span class="word-translation">${word.translation}</span>
+            </div>
+            <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
+                <i class="fas fa-volume-up"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function filterWords() {
+    const searchTerm = document.getElementById('wordSearch').value.toLowerCase();
+    const filteredWords = allWords.filter(word => 
+        word.korean.toLowerCase().includes(searchTerm) || 
+        word.translation.toLowerCase().includes(searchTerm)
+    );
+    
+    document.getElementById('dictionaryList').innerHTML = generateWordList(filteredWords);
+}
+
+// Обновляем вызов в showCardsPage()
+function showCardsPage() {
+    showDictionaryPage(); // Заменяем карточки на словарь
+}
 
 // Вспомогательные функции
 function updateActiveNav(section) {
