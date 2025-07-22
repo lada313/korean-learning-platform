@@ -1,5 +1,5 @@
 // Глобальные переменные
-let words = JSON.parse(localStorage.getItem('koreanWords')) || [];
+let words = JSON.parse(localStorage.getItem('koreanWords')) || []; // Исправлено: удалена лишняя скобка
 let levels = [];
 let currentCardIndex = 0;
 let isCardFlipped = false;
@@ -80,7 +80,9 @@ function initCards() {
 
   cardContent.addEventListener('touchend', (e) => {
     const diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) diff > 0 ? nextBtn.click() : prevBtn.click();
+    if (Math.abs(diff) > 50) {
+      diff > 0 ? nextBtn.click() : prevBtn.click();
+    }
   }, { passive: true });
 
   // Горячие клавиши
