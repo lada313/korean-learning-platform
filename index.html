@@ -2,30 +2,113 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Корейский тренажёр</title>
+  <meta name="theme-color" content="#4a76a8">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <nav class="navbar">
-    <a href="#cards" class="nav-link">Карточки</a>
-    <a href="#test" class="nav-link">Тест</a>
-    <a href="#dictionary" class="nav-link">Словарь</a>
-    <a href="#levels" class="nav-link">Уровни</a>
+    <div class="nav-container">
+      <a href="#cards" class="nav-link mobile-icon">🎴</a>
+      <a href="#test" class="nav-link mobile-icon">✍️</a>
+      <a href="#dictionary" class="nav-link mobile-icon">📖</a>
+      <a href="#levels" class="nav-link mobile-icon">🏆</a>
+      <span class="nav-text" id="nav-text">Карточки</span>
+    </div>
   </nav>
 
-  <div id="levels" class="page">
-    <div class="levels-container">
-      <h1>Мои уровни</h1>
-      <div class="levels-grid" id="levels-grid"></div>
-      
-      <div class="level-details" id="level-details">
-        <div class="level-info" id="level-info"></div>
+  <div class="page-container">
+    <!-- Карточки -->
+    <div id="cards" class="page active">
+      <div class="card" id="main-card">
+        <div class="card-content" id="card-content"></div>
+        <div class="card-actions">
+          <button id="prev-card" class="card-btn">←</button>
+          <span id="card-counter">1/10</span>
+          <button id="next-card" class="card-btn">→</button>
+        </div>
       </div>
+    </div>
+
+    <!-- Тест -->
+    <div id="test" class="page">
+      <div class="test-question" id="test-question"></div>
+      <div class="test-options" id="test-options"></div>
+      <div class="test-progress">
+        <div class="progress-bar" id="test-progress"></div>
+      </div>
+    </div>
+
+    <!-- Словарь -->
+    <div id="dictionary" class="page">
+      <div class="dictionary-tools">
+        <input type="text" id="word-search" placeholder="Поиск..." class="search-input">
+        <button id="add-word-btn" class="add-btn">+</button>
+      </div>
+      <div class="words-list" id="words-list"></div>
+    </div>
+
+    <!-- Уровни -->
+    <div id="levels" class="page">
+      <div class="levels-header">
+        <h2>Мои уровни</h2>
+        <div class="level-progress">
+          <span id="levels-completed">0</span>/<span id="levels-total">0</span>
+        </div>
+      </div>
+      <div class="levels-grid" id="levels-grid"></div>
     </div>
   </div>
 
-  <!-- Остальные страницы (cards, test, dictionary) остаются без изменений -->
+  <!-- Мобильная клавиатура (для тестов) -->
+<div class="mobile-keyboard" id="mobile-keyboard">
+  <div class="keyboard-row">
+    <button class="keyboard-key" data-char="ㅂ">ㅂ</button>
+    <button class="keyboard-key" data-char="ㅈ">ㅈ</button>
+    <button class="keyboard-key" data-char="ㄷ">ㄷ</button>
+    <button class="keyboard-key" data-char="ㄱ">ㄱ</button>
+    <button class="keyboard-key" data-char="ㅅ">ㅅ</button>
+  </div>
+  <div class="keyboard-row">
+    <button class="keyboard-key" data-char="ㅛ">ㅛ</button>
+    <button class="keyboard-key" data-char="ㅕ">ㅕ</button>
+    <button class="keyboard-key" data-char="ㅑ">ㅑ</button>
+    <button class="keyboard-key" data-char="ㅐ">ㅐ</button>
+    <button class="keyboard-key" data-char="ㅔ">ㅔ</button>
+  </div>
+  <div class="keyboard-row">
+    <button class="keyboard-key" data-char="ㅁ">ㅁ</button>
+    <button class="keyboard-key" data-char="ㄴ">ㄴ</button>
+    <button class="keyboard-key" data-char="ㅇ">ㅇ</button>
+    <button class="keyboard-key" data-char="ㄹ">ㄹ</button>
+    <button class="keyboard-key" data-char="ㅎ">ㅎ</button>
+  </div>
+  <div class="keyboard-row">
+    <button class="keyboard-key" data-char="ㅗ">ㅗ</button>
+    <button class="keyboard-key" data-char="ㅓ">ㅓ</button>
+    <button class="keyboard-key" data-char="ㅏ">ㅏ</button>
+    <button class="keyboard-key" data-char="ㅣ">ㅣ</button>
+  </div>
+  <div class="keyboard-row">
+    <button class="keyboard-key" data-char="ㅋ">ㅋ</button>
+    <button class="keyboard-key" data-char="ㅌ">ㅌ</button>
+    <button class="keyboard-key" data-char="ㅊ">ㅊ</button>
+    <button class="keyboard-key" data-char="ㅍ">ㅍ</button>
+    <button class="keyboard-key" data-char="ㅠ">ㅠ</button>
+  </div>
+  <div class="keyboard-row">
+    <button class="keyboard-key" data-char="ㅜ">ㅜ</button>
+    <button class="keyboard-key" data-char="ㅡ">ㅡ</button>
+    <button class="keyboard-key" data-char="ㅒ">ㅒ</button>
+    <button class="keyboard-key" data-char="ㅖ">ㅖ</button>
+  </div>
+  <div class="keyboard-row">
+    <button class="keyboard-key keyboard-space" data-char=" ">Space</button>
+    <button class="keyboard-key keyboard-backspace" data-char="backspace">←</button>
+  </div>
+</div>
 
   <script src="script.js"></script>
 </body>
