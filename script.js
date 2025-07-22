@@ -1,12 +1,11 @@
 // Глобальные переменные
-let words = [];
+let words = JSON.parse(localStorage.getItem('koreanWords')) || [];
 let levels = [];
 let currentCardIndex = 0;
 let isCardFlipped = false;
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
-  loadData();
   initNavigation();
   initCards();
   initDictionary();
@@ -28,10 +27,10 @@ function initCards() {
   const counter = document.getElementById('card-counter');
 
   function updateCard() {
-    if (words.length === 0) {
+    if (!words.length) {
       cardContent.innerHTML = `
         <div class="empty-state">
-          <i class="fas fa-book-open" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
+          <i class="fas fa-book-open"></i>
           <p>Добавьте слова в словаре</p>
         </div>
       `;
@@ -60,14 +59,14 @@ function initCards() {
 
   // Навигация
   prevBtn.addEventListener('click', () => {
-    if (words.length > 0) {
+    if (words.length) {
       currentCardIndex = (currentCardIndex - 1 + words.length) % words.length;
       updateCard();
     }
   });
 
   nextBtn.addEventListener('click', () => {
-    if (words.length > 0) {
+    if (words.length) {
       currentCardIndex = (currentCardIndex + 1) % words.length;
       updateCard();
     }
@@ -75,26 +74,20 @@ function initCards() {
 
   // Свайпы для мобильных
   let touchStartX = 0;
-
   cardContent.addEventListener('touchstart', (e) => {
     touchStartX = e.touches[0].clientX;
   }, { passive: true });
 
   cardContent.addEventListener('touchend', (e) => {
-    const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchStartX - touchEndX;
-    
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) nextBtn.click();
-      else prevBtn.click();
-    }
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) diff > 0 ? nextBtn.click() : prevBtn.click();
   }, { passive: true });
 
   // Горячие клавиши
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft') prevBtn.click();
     if (e.key === 'ArrowRight') nextBtn.click();
-    if (e.key === ' ') cardContent.click(); // Пробел для переворота
+    if (e.key === ' ') cardContent.click();
   });
 
   updateCard();
@@ -110,39 +103,34 @@ function initDictionary() {
   const searchInput = document.getElementById('word-search');
 
   function renderWords(filter = '') {
-    const filteredWords = filter 
-      ? words.filter(word => 
-          word.korean.toLowerCase().includes(filter.toLowerCase()) || 
-          word.russian.toLowerCase().includes(filter.toLowerCase()))
-      : words;
+    const filteredWords = filter ? words.filter(word => 
+      word.korean.toLowerCase().includes(filter.toLowerCase()) || 
+      word.russian.toLowerCase().includes(filter.toLowerCase())
+    : words;
 
-    if (filteredWords.length === 0) {
-      wordsList.innerHTML = `
-        <div class="empty-message">
-          <i class="fas fa-search" style="font-size: 2rem; color: var(--text-light); margin-bottom: 10px;"></i>
-          <p>Совпадений не найдено</p>
-        </div>
-      `;
-      return;
-    }
-
-    wordsList.innerHTML = filteredWords.map((word, index) => `
-      <div class="word-item">
-        <div class="word-header">
-          <div>
-            <div class="word-korean">${word.korean}</div>
-            <div class="word-translation">${word.russian}</div>
+    wordsList.innerHTML = filteredWords.length ? 
+      filteredWords.map((word, index) => `
+        <div class="word-item">
+          <div class="word-header">
+            <div>
+              <div class="word-korean">${word.korean}</div>
+              <div class="word-translation">${word.russian}</div>
+            </div>
+            <button class="delete-word" data-index="${index}">×</button>
           </div>
-          <button class="delete-word" data-index="${index}">×</button>
+          ${word.example ? `<div class="word-example">${word.example}</div>` : ''}
         </div>
-        ${word.example ? `<div class="word-example">${word.example}</div>` : ''}
+      `).join('') : `
+      <div class="empty-message">
+        <i class="fas fa-search"></i>
+        <p>Совпадений не найдено</p>
       </div>
-    `).join('');
+    `;
 
     // Обработчики удаления
     document.querySelectorAll('.delete-word').forEach(btn => {
       btn.addEventListener('click', function() {
-        const index = parseInt(this.getAttribute('data-index'));
+        const index = parseInt(this.dataset.index);
         if (confirm('Удалить это слово?')) {
           words.splice(index, 1);
           saveWords();
@@ -155,18 +143,11 @@ function initDictionary() {
   }
 
   // Поиск
-  searchInput.addEventListener('input', (e) => {
-    renderWords(e.target.value);
-  });
+  searchInput.addEventListener('input', (e) => renderWords(e.target.value));
 
   // Форма добавления
-  addBtn.addEventListener('click', () => {
-    addForm.classList.remove('hidden');
-  });
-
-  cancelBtn.addEventListener('click', () => {
-    addForm.classList.add('hidden');
-  });
+  addBtn.addEventListener('click', () => addForm.classList.remove('hidden'));
+  cancelBtn.addEventListener('click', () => addForm.classList.add('hidden'));
 
   saveBtn.addEventListener('click', () => {
     const korean = document.getElementById('new-korean-word').value.trim();
@@ -174,10 +155,7 @@ function initDictionary() {
     const example = document.getElementById('new-word-example').value.trim();
 
     if (korean && russian) {
-      const newWord = { korean, russian };
-      if (example) newWord.example = example;
-      
-      words.push(newWord);
+      words.push({ korean, russian, ...(example && { example }) });
       saveWords();
       
       // Сброс формы
@@ -204,14 +182,14 @@ function initLevels() {
   const completedEl = document.getElementById('levels-completed');
   const totalEl = document.getElementById('levels-total');
 
-  // Создание уровней (по 10 слов)
+  // Создание уровней
   const totalLevels = Math.max(1, Math.ceil(words.length / 10));
   levels = Array.from({ length: totalLevels }, (_, i) => ({
     id: i + 1,
     name: `Уровень ${i + 1}`,
     words: words.slice(i * 10, (i + 1) * 10),
-    passed: false,
-    locked: i > 0
+    passed: localStorage.getItem(`level_${i+1}_passed`) === 'true',
+    locked: i > 0 && !levels[i-1]?.passed
   }));
 
   // Отрисовка
@@ -232,36 +210,28 @@ function initLevels() {
 }
 
 // ==================== ОБЩИЕ ФУНКЦИИ ====================
-function loadData() {
-  words = JSON.parse(localStorage.getItem('koreanWords')) || [];
-}
-
 function saveWords() {
   localStorage.setItem('koreanWords', JSON.stringify(words));
 }
 
 function initNavigation() {
-    const pages = document.querySelectorAll('.page');
-    const navLinks = document.querySelectorAll('.nav-link');
+  const setActivePage = (pageId) => {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     
-    function setActivePage(pageId) {
-        pages.forEach(page => page.classList.remove('active'));
-        navLinks.forEach(link => link.classList.remove('active'));
-        
-        document.getElementById(pageId).classList.add('active');
-        document.querySelector(`.nav-link[href="#${pageId}"]`).classList.add('active');
-    }
-    
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const pageId = this.getAttribute('href').substring(1);
-            setActivePage(pageId);
-            window.location.hash = pageId;
-        });
+    document.getElementById(pageId)?.classList.add('active');
+    document.querySelector(`.nav-link[href="#${pageId}"]`)?.classList.add('active');
+  };
+
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const pageId = this.getAttribute('href').substring(1);
+      setActivePage(pageId);
+      window.location.hash = pageId;
     });
-    
-    // Инициализация по hash
-    const initialPage = window.location.hash.substring(1) || 'cards';
-    setActivePage(initialPage);
+  });
+  
+  // Инициализация по hash
+  setActivePage(window.location.hash.substring(1) || 'cards');
 }
