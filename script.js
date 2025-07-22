@@ -205,7 +205,7 @@ function renderFlashcard() {
     `;
 }
 
-/ Обновленная функция nextCard()
+// Обновленная функция nextCard()
 function nextCard(know) {
     if (know) {
         if (!userProgress.knownWords.includes(flashcards[currentFlashcardIndex].id)) {
