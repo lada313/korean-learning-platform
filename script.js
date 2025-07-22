@@ -1,7 +1,8 @@
 // Глобальные переменные
 let words = [];
 let levels = [];
-let currentLevel = 1;
+let currentCardIndex = 0;
+let isCardFlipped = false;
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
@@ -25,47 +26,49 @@ function initCards() {
   const prevBtn = document.getElementById('prev-card');
   const nextBtn = document.getElementById('next-card');
   const counter = document.getElementById('card-counter');
-  
-  let currentIndex = 0;
-  let isFlipped = false;
 
   function updateCard() {
     if (words.length === 0) {
-      cardContent.innerHTML = '<div class="empty-state">Добавьте слова в словаре</div>';
+      cardContent.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-book-open" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
+          <p>Добавьте слова в словаре</p>
+        </div>
+      `;
       counter.textContent = "0/0";
       return;
     }
 
-    const word = words[currentIndex];
+    const word = words[currentCardIndex];
     cardContent.innerHTML = `
       <div class="card-front">${word.korean}</div>
       <div class="card-back">
         <div>${word.russian}</div>
-        ${word.example ? `<div class="example">${word.example}</div>` : ''}
+        ${word.example ? `<div class="example">Пример: ${word.example}</div>` : ''}
       </div>
     `;
-    counter.textContent = `${currentIndex + 1}/${words.length}`;
-    isFlipped = false;
+    counter.textContent = `${currentCardIndex + 1}/${words.length}`;
+    isCardFlipped = false;
     cardContent.style.transform = 'rotateY(0)';
   }
 
   // Переворот карточки
   cardContent.addEventListener('click', () => {
-    isFlipped = !isFlipped;
-    cardContent.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0)';
+    isCardFlipped = !isCardFlipped;
+    cardContent.style.transform = isCardFlipped ? 'rotateY(180deg)' : 'rotateY(0)';
   });
 
   // Навигация
   prevBtn.addEventListener('click', () => {
     if (words.length > 0) {
-      currentIndex = (currentIndex - 1 + words.length) % words.length;
+      currentCardIndex = (currentCardIndex - 1 + words.length) % words.length;
       updateCard();
     }
   });
 
   nextBtn.addEventListener('click', () => {
     if (words.length > 0) {
-      currentIndex = (currentIndex + 1) % words.length;
+      currentCardIndex = (currentCardIndex + 1) % words.length;
       updateCard();
     }
   });
@@ -87,6 +90,13 @@ function initCards() {
     }
   }, { passive: true });
 
+  // Горячие клавиши
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') prevBtn.click();
+    if (e.key === 'ArrowRight') nextBtn.click();
+    if (e.key === ' ') cardContent.click(); // Пробел для переворота
+  });
+
   updateCard();
 }
 
@@ -97,15 +107,35 @@ function initDictionary() {
   const cancelBtn = document.getElementById('cancel-add-word');
   const addForm = document.getElementById('add-word-form');
   const wordsList = document.getElementById('words-list');
+  const searchInput = document.getElementById('word-search');
 
-  function renderWords() {
-    wordsList.innerHTML = words.map((word, index) => `
+  function renderWords(filter = '') {
+    const filteredWords = filter 
+      ? words.filter(word => 
+          word.korean.toLowerCase().includes(filter.toLowerCase()) || 
+          word.russian.toLowerCase().includes(filter.toLowerCase()))
+      : words;
+
+    if (filteredWords.length === 0) {
+      wordsList.innerHTML = `
+        <div class="empty-message">
+          <i class="fas fa-search" style="font-size: 2rem; color: var(--text-light); margin-bottom: 10px;"></i>
+          <p>Совпадений не найдено</p>
+        </div>
+      `;
+      return;
+    }
+
+    wordsList.innerHTML = filteredWords.map((word, index) => `
       <div class="word-item">
         <div class="word-header">
-          <strong>${word.korean}</strong> - ${word.russian}
+          <div>
+            <div class="word-korean">${word.korean}</div>
+            <div class="word-translation">${word.russian}</div>
+          </div>
           <button class="delete-word" data-index="${index}">×</button>
         </div>
-        ${word.example ? `<div class="word-example">Пример: ${word.example}</div>` : ''}
+        ${word.example ? `<div class="word-example">${word.example}</div>` : ''}
       </div>
     `).join('');
 
@@ -116,15 +146,20 @@ function initDictionary() {
         if (confirm('Удалить это слово?')) {
           words.splice(index, 1);
           saveWords();
-          renderWords();
-          initCards(); // Обновляем карточки
-          initLevels(); // Обновляем уровни
+          renderWords(searchInput.value);
+          initCards();
+          initLevels();
         }
       });
     });
   }
 
-  // Показать/скрыть форму добавления
+  // Поиск
+  searchInput.addEventListener('input', (e) => {
+    renderWords(e.target.value);
+  });
+
+  // Форма добавления
   addBtn.addEventListener('click', () => {
     addForm.classList.remove('hidden');
   });
@@ -133,7 +168,6 @@ function initDictionary() {
     addForm.classList.add('hidden');
   });
 
-  // Сохранение нового слова
   saveBtn.addEventListener('click', () => {
     const korean = document.getElementById('new-korean-word').value.trim();
     const russian = document.getElementById('new-russian-word').value.trim();
@@ -153,11 +187,11 @@ function initDictionary() {
       addForm.classList.add('hidden');
       
       // Обновление интерфейса
-      renderWords();
+      renderWords(searchInput.value);
       initCards();
       initLevels();
     } else {
-      alert('Заполните обязательные поля');
+      alert('Заполните обязательные поля (слово и перевод)');
     }
   });
 
@@ -170,8 +204,8 @@ function initLevels() {
   const completedEl = document.getElementById('levels-completed');
   const totalEl = document.getElementById('levels-total');
 
-  // Создаем уровни на основе слов
-  const totalLevels = Math.ceil(words.length / 10) || 1;
+  // Создание уровней (по 10 слов)
+  const totalLevels = Math.max(1, Math.ceil(words.length / 10));
   levels = Array.from({ length: totalLevels }, (_, i) => ({
     id: i + 1,
     name: `Уровень ${i + 1}`,
@@ -180,7 +214,7 @@ function initLevels() {
     locked: i > 0
   }));
 
-  // Отрисовка уровней
+  // Отрисовка
   function renderLevels() {
     levelsGrid.innerHTML = levels.map(level => `
       <div class="level-card ${level.passed ? 'passed' : ''} ${level.locked ? 'locked' : ''}">
@@ -200,7 +234,6 @@ function initLevels() {
 // ==================== ОБЩИЕ ФУНКЦИИ ====================
 function loadData() {
   words = JSON.parse(localStorage.getItem('koreanWords')) || [];
-  levels = JSON.parse(localStorage.getItem('koreanLevels')) || [];
 }
 
 function saveWords() {
