@@ -1,197 +1,138 @@
-// Глобальные переменные
-let userProgress = {
-    knownWords: [],
-    difficultWords: [],
-    completedLevels: [],
-    currentLevel: 1,
-    cardIntervals: {}
-};
+// ==================== СИСТЕМА КАРТОЧЕК ====================
+function initCards() {
+  // Загрузка данных
+  const cardsData = loadWords();
+  let currentCardIndex = 0;
+  let isFlipped = false;
+  let resetFlip = null;
 
-let allWords = [];
-let allLevels = [];
+  // Элементы DOM
+  const cardContent = document.getElementById('card-content');
+  const cardCounter = document.getElementById('card-counter');
+  const prevBtn = document.getElementById('prev-card');
+  const nextBtn = document.getElementById('next-card');
+  const cardContainer = document.getElementById('main-card');
 
-// Инициализация приложения
-document.addEventListener('DOMContentLoaded', function() {
-    loadUserProgress();
-    loadData().then(() => {
-        showHomePage();
-    });
-    
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.onvoiceschanged = function() {
-            console.log("Голоса загружены");
-        };
-    }
-});
-
-// Загрузка данных
-async function loadData() {
-    try {
-        const [wordsResponse, levelsResponse] = await Promise.all([
-            fetch('data/words.json'),
-            fetch('data/levels.json')
-        ]);
-        
-        allWords = await wordsResponse.json();
-        allLevels = await levelsResponse.json();
-    } catch (error) {
-        console.error("Ошибка загрузки данных:", error);
-    }
-}
-
-// Управление прогрессом
-function loadUserProgress() {
-    const savedProgress = localStorage.getItem('koreanPlatformProgress');
-    if (savedProgress) {
-        userProgress = JSON.parse(savedProgress);
-        updateProgressUI();
-    }
-}
-
-function saveUserProgress() {
-    localStorage.setItem('koreanPlatformProgress', JSON.stringify(userProgress));
-    updateProgressUI();
-}
-
-function updateProgressUI() {
-    const progressPercent = allWords.length > 0 
-        ? Math.floor((userProgress.knownWords.length / allWords.length) * 100)
-        : 0;
-    
-    if (document.querySelector('.progress-bar')) {
-        document.querySelector('.progress-bar').style.width = `${progressPercent}%`;
-        document.querySelector('.progress-info span:first-child').textContent = `${progressPercent}% завершено`;
-        document.querySelector('.progress-info span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
-    }
-}
-
-// Навигация
-function showHomePage() {
-    const wordsForReview = getDueWords().slice(0, 6);
-    
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Учебные модули</h2>
+  // Показ текущей карточки
+  function showCard(index) {
+    // Проверка пустого словаря
+    if (cardsData.length === 0) {
+      cardContent.innerHTML = `
+        <div class="empty-state">
+          <p>Словарь пуст</p>
+          <button onclick="location.hash='#dictionary'">Добавить слова</button>
         </div>
-        <div class="cards-grid">
-            <div class="card" onclick="showDictionaryPage()">
-                <div class="card-icon cards">
-                    <i class="fas fa-book"></i>
-                </div>
-                <h3>Словарь</h3>
-                <p>Все слова для изучения</p>
-            </div>
-            
-            <div class="card" onclick="showLevelsPage()">
-                <div class="card-icon levels">
-                    <i class="fas fa-layer-group"></i>
-                </div>
-                <h3>Уровни</h3>
-                <p>Постепенное изучение</p>
-            </div>
-        </div>
-        
-        <div class="section-title">
-            <h2>Повторение слов</h2>
-            <div class="daily-count">${wordsForReview.length} слов</div>
-        </div>
-        <div class="daily-container">
-            <div class="word-list">
-                ${wordsForReview.length > 0 ? 
-                    wordsForReview.map(word => `
-                        <div class="word-preview-card" onclick="speakWord(null, '${word.korean}')">
-                            <div class="word-preview-korean">${word.korean}</div>
-                            <div class="word-preview-translation">${word.translation}</div>
-                            <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
-                                <i class="fas fa-volume-up"></i>
-                            </button>
-                        </div>
-                    `).join('') : 
-                    '<p class="empty-message">Нет слов для повторения</p>'
-                }
-            </div>
-        </div>
+      `;
+      cardCounter.textContent = "0/0";
+      return;
+    }
+
+    // Корректировка индекса
+    index = (index + cardsData.length) % cardsData.length;
+    currentCardIndex = index;
+    const card = cardsData[index];
+
+    // Обновление контента
+    cardContent.innerHTML = `
+      <div class="card-front">${card.korean}</div>
+      <div class="card-back">
+        <p>${card.russian}</p>
+        ${card.example ? `<div class="example"><em>Пример:</em> ${card.example}</div>` : ''}
+      </div>
     `;
-    
-    updateActiveNav('home');
-}
+    cardCounter.textContent = `${index + 1}/${cardsData.length}`;
 
-// Словарь слов
-function showDictionaryPage() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="dictionary-container">
-            <div class="search-box">
-                <input type="text" id="wordSearch" placeholder="Поиск по корейскому или русскому..." oninput="filterWords()">
-                <i class="fas fa-search"></i>
-            </div>
-            <div class="word-list" id="dictionaryList">
-                ${generateWordList(allWords)}
-            </div>
-        </div>
-    `;
-    updateActiveNav('study');
-}
+    // Сброс состояния переворота
+    if (resetFlip) resetFlip();
+    resetFlip = initCardFlip();
+  }
 
-function generateWordList(words) {
-    return words.map(word => `
-        <div class="word-item">
-            <div class="word-content">
-                <span class="word-korean">${word.korean}</span>
-                <span class="word-translation">${word.translation}</span>
-                ${word.romanization ? `<span class="word-romanization">${word.romanization}</span>` : ''}
-            </div>
-            <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
-                <i class="fas fa-volume-up"></i>
-            </button>
-        </div>
-    `).join('');
-}
+  // Инициализация переворота карточки
+  function initCardFlip() {
+    let flipped = false;
+    const front = cardContent.querySelector('.card-front');
+    const back = cardContent.querySelector('.card-back');
 
-function filterWords() {
-    const searchTerm = document.getElementById('wordSearch').value.toLowerCase();
-    const filteredWords = allWords.filter(word => 
-        word.korean.toLowerCase().includes(searchTerm) || 
-        word.translation.toLowerCase().includes(searchTerm) ||
-        (word.romanization && word.romanization.toLowerCase().includes(searchTerm))
-    );
-    
-    document.getElementById('dictionaryList').innerHTML = generateWordList(filteredWords);
-}
-
-// Работа с карточками
-function getDueWords() {
-    const now = Date.now();
-    return allWords.filter(word => {
-        if (!userProgress.cardIntervals?.[word.id]) return true;
-        return now >= userProgress.cardIntervals[word.id].nextReview;
-    });
-}
-
-// Вспомогательные функции
-function updateActiveNav(section) {
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('onclick')?.includes(section)) {
-            item.classList.add('active');
-        }
-    });
-}
-
-function speakWord(event, text) {
-    event?.stopPropagation();
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        window.speechSynthesis.speak(utterance);
+    function flip() {
+      flipped = !flipped;
+      cardContent.style.transform = flipped ? 'rotateY(180deg)' : 'rotateY(0)';
+      front.style.visibility = flipped ? 'hidden' : 'visible';
+      back.style.visibility = flipped ? 'visible' : 'hidden';
     }
+
+    // Обработчики для разных устройств
+    cardContent.onclick = flip;
+    cardContent.ontouchend = flip;
+
+    // Функция сброса
+    return () => {
+      if (flipped) {
+        cardContent.style.transform = 'rotateY(0)';
+        front.style.visibility = 'visible';
+        back.style.visibility = 'hidden';
+        flipped = false;
+      }
+    };
+  }
+
+  // Навигация
+  function goToCard(offset) {
+    const newIndex = currentCardIndex + offset;
+    if (newIndex >= 0 && newIndex < cardsData.length) {
+      showCard(newIndex);
+    }
+    return newIndex;
+  }
+
+  prevBtn.addEventListener('click', () => goToCard(-1));
+  nextBtn.addEventListener('click', () => goToCard(1));
+
+  // Обработка свайпов
+  let touchStartX = 0;
+  let touchStartTime = 0;
+
+  cardContainer.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartTime = Date.now();
+  }, { passive: true });
+
+  cardContainer.addEventListener('touchend', (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndTime = Date.now();
+    handleSwipe(touchStartX, touchEndX, touchEndTime - touchStartTime);
+  }, { passive: true });
+
+  function handleSwipe(startX, endX, duration) {
+    const deltaX = endX - startX;
+    const absDeltaX = Math.abs(deltaX);
+    const isFastSwipe = duration < 300 && absDeltaX > 50;
+    const isLongSwipe = absDeltaX > 100;
+
+    if (isFastSwipe || isLongSwipe) {
+      if (deltaX > 0) {
+        // Свайп вправо - предыдущая карточка
+        goToCard(-1);
+      } else {
+        // Свайп влево - следующая карточка
+        goToCard(1);
+      }
+    }
+  }
+
+  // Горячие клавиши
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') goToCard(-1);
+    if (e.key === 'ArrowRight') goToCard(1);
+    if (e.key === ' ') cardContent.click(); // Пробел для переворота
+  });
+
+  // Инициализация
+  showCard(0);
+
+  // Экспорт функций для отладки
+  window.debugCards = {
+    goToCard,
+    currentIndex: () => currentCardIndex,
+    cardsCount: () => cardsData.length
+  };
 }
-
-// Заглушки для остальных функций
-function showLevelsPage() { alert("Раздел уровней в разработке"); }
-function showProgressPage() { alert("Раздел прогресса в разработке"); }
-
-// Экспорт функций для HTML
-window.showHomePage = showHomePage;
-window.showDictionaryPage = showDictionaryPage;
-window.filterWords = filterWords;
-window.speakWord = speakWord;
