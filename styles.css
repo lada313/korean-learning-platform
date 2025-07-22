@@ -483,4 +483,112 @@ header {
     .cards-grid {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     }
+    /* Стили для словаря */
+.dictionary-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 20px;
+    padding-left: 40px;
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    font-size: 1rem;
+    box-shadow: var(--shadow);
+}
+
+.search-box .fa-search {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+.word-list {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.word-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+}
+
+.word-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.word-content {
+    flex-grow: 1;
+}
+
+.word-korean {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-dark);
+    display: block;
+    margin-bottom: 5px;
+}
+
+.word-translation {
+    font-size: 0.9rem;
+    color: var(--text-medium);
+    display: block;
+}
+
+.word-item .speak-btn {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.word-item .speak-btn:hover {
+    background: rgba(76, 175, 80, 0.1);
+    transform: scale(1.1);
+}
+
+/* Полоса прокрутки */
+.word-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.word-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.word-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.word-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
 }
