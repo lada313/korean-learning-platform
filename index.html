@@ -1,92 +1,70 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Korean Learning Platform</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korean Learning Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50">
 </head>
 <body>
-   <header>
-    <h1>Korean Learning Platform</h1>
-  </header>
-  
-  <nav>
-    <a href="#cards" class="nav-link"><i class="fas fa-images"></i> Карточки</a>
-    <a href="#dictionary" class="nav-link"><i class="fas fa-book"></i> Словарь</a>
-    <a href="#levels" class="nav-link"><i class="fas fa-trophy"></i> Уровни</a>
-  </nav>
-  
-  <div class="container">
-    <!-- Страница карточек -->
-    <div id="cards" class="page">
-      <div id="card-container">
-        <div id="card-content">
-          <div class="empty-state">
-            <i class="fas fa-book-open"></i>
-            <p>Добавьте слова в словаре</p>
-          </div>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-language"></i>
+                <span>KoreanMaster</span>
+            </div>
+            <div class="user-profile">
+                <i class="fas fa-user"></i>
+            </div>
         </div>
-        <div class="card-nav">
-          <button id="prev-card" class="card-btn"><i class="fas fa-arrow-left"></i> Назад</button>
-          <span id="card-counter">0/0</span>
-          <button id="next-card" class="card-btn">Вперед <i class="fas fa-arrow-right"></i></button>
+        <div class="progress-container">
+            <div class="progress-bar"></div>
         </div>
-      </div>
+        <div class="progress-info">
+            <span>0% завершено</span>
+            <span>Уровень 1</span>
+        </div>
+    </header>
+    
+    <div class="container" id="mainContent">
+        <!-- Контент будет загружен через script.js -->
     </div>
     
-    <!-- Страница словаря -->
-    <div id="dictionary" class="page">
-      <div class="dictionary-header">
-        <input type="text" id="word-search" placeholder="Поиск слов...">
-        <button id="add-word-btn"><i class="fas fa-plus"></i> Добавить слово</button>
-      </div>
-      
-      <div id="add-word-form" class="hidden">
-        <div class="form-group">
-          <label for="new-korean-word">Корейское слово*</label>
-          <input type="text" id="new-korean-word" required>
-        </div>
-        <div class="form-group">
-          <label for="new-russian-word">Перевод*</label>
-          <input type="text" id="new-russian-word" required>
-        </div>
-        <div class="form-group">
-          <label for="new-word-example">Пример использования (необязательно)</label>
-          <textarea id="new-word-example" rows="2"></textarea>
-        </div>
-        <div class="form-actions">
-          <button id="cancel-add-word">Отмена</button>
-          <button id="save-word" class="primary">Сохранить</button>
-        </div>
-      </div>
-      
-      <div id="words-list">
-        <div class="empty-message">
-          <i class="fas fa-search"></i>
-          <p>Совпадений не найдено</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Страница уровней -->
-    <div id="levels" class="page">
-      <div class="levels-header">
-        <h2>Уровни изучения</h2>
-        <div class="levels-stats">
-          Пройдено: <span id="levels-completed">0</span>/<span id="levels-total">0</span>
-        </div>
-      </div>
-      
-      <div id="levels-grid">
-        <div class="level-card">
-          <h3>Уровень 1</h3>
-          <p>Слов: 0/10</p>
-        </div>
-      </div>
-    </div>
-  </div>
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" onclick="showHomePage()">
+            <i class="fas fa-home"></i>
+            <span>Главная</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showCardsPage()">
+            <i class="fas fa-book"></i>
+            <span>Учеба</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showProgressPage()">
+            <i class="fas fa-chart-line"></i>
+            <span>Прогресс</span>
+        </a>
+        <a href="#" class="nav-item" onclick="showSettingsPage()">
+            <i class="fas fa-cog"></i>
+            <span>Настройки</span>
+        </a>
+    </nav>
 
-  <script src="script.js" defer></script>
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registered');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
