@@ -77,67 +77,35 @@ function showHomePage() {
                 userProgress.knownWords.includes(word.id) && 
                 isDueForReview(word.id)
             ).slice(0, 6);
-    
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Учебные модули</h2>
-        </div>
-        <div class="cards-grid">
-            <div class="card" onclick="showLevelsPage()">
-                <div class="card-icon levels">
-                    <i class="fas fa-book"></i>
-                </div>
-                <h3>Уровни</h3>
-                <p>${allLevels.length} уровней</p>
-            </div>
             
-            <div class="card" onclick="showCardsPage()">
-                <div class="card-icon cards">
-                    <i class="fas fa-layer-group"></i>
+            document.getElementById('mainContent').innerHTML = `
+                <!-- Остальной HTML код -->
+                <div class="section-title">
+                    <h2>Повторение слов</h2>
+                    <div class="daily-count">${reviewWords.length} слов</div>
                 </div>
-                <h3>Карточки</h3>
-                <p>Повторение слов</p>
-            </div>
+                <div class="daily-container">
+                    <div class="word-list">
+                        ${reviewWords.length > 0 ? 
+                            reviewWords.map(word => `
+                                <div class="word-preview-card" onclick="showWordCard(${word.id})">
+                                    <div class="word-preview-korean">${word.korean}</div>
+                                    <div class="word-preview-translation">${word.translation}</div>
+                                </div>
+                            `).join('') : 
+                            '<p class="empty-message">Нет слов для повторения</p>'
+                        }
+                    </div>
+                </div>
+            `;
             
-            <div class="card" onclick="showGrammarPage()">
-                <div class="card-icon grammar">
-                    <i class="fas fa-pen-nib"></i>
-                </div>
-                <h3>Грамматика</h3>
-                <p>Правила и примеры</p>
-            </div>
-            
-            <div class="card" onclick="showTextsPage()">
-                <div class="card-icon text">
-                    <i class="fas fa-font"></i>
-                </div>
-                <h3>Тексты</h3>
-                <p>Чтение и перевод</p>
-            </div>
-        </div>
-        
-        <div class="section-title">
-            <h2>Повторение слов</h2>
-            <div class="daily-count">${wordsForReview.length} слов</div>
-        </div>
-        <div class="daily-container">
-            <div class="word-list">
-                ${wordsForReview.length > 0 ? 
-                    wordsForReview.map(word => `
-                        <div class="word-preview-card" onclick="showWordCard(${word.id})">
-                            <div class="word-preview-korean">${word.korean}</div>
-                            <div class="word-preview-translation">${word.translation}</div>
-                        </div>
-                    `).join('') : 
-                    '<p class="empty-message">Нет слов для повторения</p>'
-                }
-            </div>
-        </div>
-    `;
-    
-    updateActiveNav('home');
+            updateActiveNav('home');
+        });
 }
-
+function isDueForReview(wordId) {
+    if (!userProgress.cardIntervals?.[wordId]) return true;
+    return Date.now() >= userProgress.cardIntervals[wordId].nextReview;
+}
 function showCardsPage() {
     fetch('data/words.json')
         .then(response => response.json())
@@ -160,15 +128,22 @@ function showCardsPage() {
 
 / Новая функция renderFlashcard()
 function renderFlashcard() {
-    if (flashcards.length === 0) return;
+    if (flashcards.length === 0) {
+        document.getElementById('mainContent').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <h3>Нет слов для повторения</h3>
+                <button class="card-btn" onclick="showHomePage()">На главную</button>
+            </div>
+        `;
+        return;
+    }
     
     const word = flashcards[currentFlashcardIndex];
-    const mainContent = document.getElementById('mainContent');
-    
-    mainContent.innerHTML = `
+    document.getElementById('mainContent').innerHTML = `
         <div class="section-title">
             <h2>Карточки для повторения</h2>
-            <div class="daily-count">${flashcards.length} слов</div>
+            <div class="view-all" onclick="showHomePage()">На главную</div>
         </div>
         
         <div class="word-card" onclick="flipCard(this)">
@@ -196,10 +171,10 @@ function renderFlashcard() {
         
         <div class="card-controls">
             <button class="card-btn" onclick="nextCard(false)">
-                <i class="fas fa-times"></i> Еще раз
+                <i class="fas fa-redo"></i> Снова
             </button>
-            <button class="card-btn" onclick="nextCard(true)">
-                <i class="fas fa-check"></i> Знаю
+            <button class="card-btn" onclick="nextCard(true); speakWord(null, '${word.korean}')">
+                <i class="fas fa-check-circle"></i> Знаю
             </button>
         </div>
     `;
