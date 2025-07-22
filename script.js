@@ -9,8 +9,6 @@ let userProgress = {
 
 let allWords = [];
 let allLevels = [];
-let currentCardIndex = 0;
-let flashcards = [];
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
@@ -70,43 +68,26 @@ function updateProgressUI() {
 // Навигация
 function showHomePage() {
     const wordsForReview = getDueWords().slice(0, 6);
-    const recentLevels = allLevels.slice(0, 10);
     
     document.getElementById('mainContent').innerHTML = `
         <div class="section-title">
             <h2>Учебные модули</h2>
         </div>
         <div class="cards-grid">
-            <div class="card" onclick="showLevelsPage()">
-                <div class="card-icon levels">
+            <div class="card" onclick="showDictionaryPage()">
+                <div class="card-icon cards">
                     <i class="fas fa-book"></i>
                 </div>
-                <h3>Уровни</h3>
-                <p>${allLevels.length} уровней</p>
+                <h3>Словарь</h3>
+                <p>Все слова для изучения</p>
             </div>
             
-            <div class="card" onclick="showCardsPage()">
-                <div class="card-icon cards">
+            <div class="card" onclick="showLevelsPage()">
+                <div class="card-icon levels">
                     <i class="fas fa-layer-group"></i>
                 </div>
-                <h3>Карточки</h3>
-                <p>Повторение слов</p>
-            </div>
-            
-            <div class="card" onclick="showGrammarPage()">
-                <div class="card-icon grammar">
-                    <i class="fas fa-pen-nib"></i>
-                </div>
-                <h3>Грамматика</h3>
-                <p>Правила и примеры</p>
-            </div>
-            
-            <div class="card" onclick="showTextsPage()">
-                <div class="card-icon text">
-                    <i class="fas fa-font"></i>
-                </div>
-                <h3>Тексты</h3>
-                <p>Чтение и перевод</p>
+                <h3>Уровни</h3>
+                <p>Постепенное изучение</p>
             </div>
         </div>
         
@@ -118,9 +99,12 @@ function showHomePage() {
             <div class="word-list">
                 ${wordsForReview.length > 0 ? 
                     wordsForReview.map(word => `
-                        <div class="word-preview-card" onclick="showWordCard(${word.id})">
+                        <div class="word-preview-card" onclick="speakWord(null, '${word.korean}')">
                             <div class="word-preview-korean">${word.korean}</div>
                             <div class="word-preview-translation">${word.translation}</div>
+                            <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
                         </div>
                     `).join('') : 
                     '<p class="empty-message">Нет слов для повторения</p>'
@@ -132,153 +116,7 @@ function showHomePage() {
     updateActiveNav('home');
 }
 
-function showCardsPage() {
-    flashcards = getDueWords();
-    currentCardIndex = 0;
-    
-    if (flashcards.length === 0) {
-        flashcards = allWords.slice(0, 5); // Показываем первые 5 слов если нет для повторения
-    }
-    
-    renderFlashcard();
-    updateActiveNav('study');
-}
-
-function renderFlashcard() {
-    if (flashcards.length === 0) {
-        document.getElementById('mainContent').innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-check-circle"></i>
-                <h3>Нет слов для повторения</h3>
-                <button class="card-btn" onclick="showHomePage()">На главную</button>
-            </div>
-        `;
-        return;
-    }
-    
-    const word = flashcards[currentCardIndex];
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Карточки для повторения</h2>
-            <div class="view-all" onclick="showHomePage()">На главную</div>
-        </div>
-        
-        <div class="word-card" onclick="flipCard(this)">
-            <div class="card-inner">
-                <div class="card-front">
-                    <div class="word-korean">${word.korean}</div>
-                    <div class="word-romanization">${word.romanization}</div>
-                    <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
-                        <i class="fas fa-volume-up"></i>
-                    </button>
-                </div>
-                <div class="card-back">
-                    <div class="word-translation">${word.translation}</div>
-                    ${word.examples.map(ex => `
-                        <div class="example-container">
-                            <div class="example-korean">${ex.korean}</div>
-                            <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
-                                <i class="fas fa-volume-up"></i>
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </div>
-        
-        <div class="card-controls">
-            <button class="card-btn" onclick="nextCard(false)">
-                <i class="fas fa-redo"></i> Снова
-            </button>
-            <button class="card-btn" onclick="nextCard(true); speakWord(null, '${word.korean}')">
-                <i class="fas fa-check-circle"></i> Знаю
-            </button>
-        </div>
-    `;
-}
-
-function nextCard(know) {
-    if (know) {
-        const wordId = flashcards[currentCardIndex].id;
-        if (!userProgress.knownWords.includes(wordId)) {
-            userProgress.knownWords.push(wordId);
-            saveUserProgress();
-        }
-    }
-    
-    currentCardIndex++;
-    if (currentCardIndex < flashcards.length) {
-        renderFlashcard();
-    } else {
-        showCardsPage();
-    }
-}
-
-function showWordCard(wordId) {
-    const word = allWords.find(w => w.id === wordId);
-    if (!word) return;
-    
-    document.getElementById('mainContent').innerHTML = `
-        <div class="word-card" onclick="flipCard(this)">
-            <div class="card-inner">
-                <div class="card-front">
-                    <div class="word-korean">${word.korean}</div>
-                    <div class="word-romanization">${word.romanization}</div>
-                    <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
-                        <i class="fas fa-volume-up"></i>
-                    </button>
-                </div>
-                <div class="card-back">
-                    <div class="word-translation">${word.translation}</div>
-                    ${word.examples.map(ex => `
-                        <div class="example-container">
-                            <div class="example-korean">${ex.korean}</div>
-                            <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
-                                <i class="fas fa-volume-up"></i>
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </div>
-        <div class="card-controls">
-            <button class="card-btn" onclick="showHomePage()">
-                <i class="fas fa-arrow-left"></i> Назад
-            </button>
-        </div>
-    `;
-}
-
-// Работа с карточками
-function flipCard(cardElement) {
-    cardElement.classList.toggle('flipped');
-}
-
-function getDueWords() {
-    const now = Date.now();
-    return allWords.filter(word => {
-        if (!userProgress.cardIntervals?.[word.id]) return true;
-        return now >= userProgress.cardIntervals[word.id].nextReview;
-    });
-}
-
-function updateCardInterval(cardId, response) {
-    const intervals = {
-        'again': 1,    // 1 день
-        'hard': 3,     // 3 дня
-        'easy': 7      // 7 дней
-    };
-    
-    if (!userProgress.cardIntervals) {
-        userProgress.cardIntervals = {};
-    }
-    
-    userProgress.cardIntervals[cardId] = {
-        nextReview: Date.now() + intervals[response] * 86400000,
-        interval: intervals[response]
-    };
-}
-// Добавляем новые функции для работы со словарем
+// Словарь слов
 function showDictionaryPage() {
     document.getElementById('mainContent').innerHTML = `
         <div class="dictionary-container">
@@ -300,6 +138,7 @@ function generateWordList(words) {
             <div class="word-content">
                 <span class="word-korean">${word.korean}</span>
                 <span class="word-translation">${word.translation}</span>
+                ${word.romanization ? `<span class="word-romanization">${word.romanization}</span>` : ''}
             </div>
             <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
                 <i class="fas fa-volume-up"></i>
@@ -312,15 +151,20 @@ function filterWords() {
     const searchTerm = document.getElementById('wordSearch').value.toLowerCase();
     const filteredWords = allWords.filter(word => 
         word.korean.toLowerCase().includes(searchTerm) || 
-        word.translation.toLowerCase().includes(searchTerm)
+        word.translation.toLowerCase().includes(searchTerm) ||
+        (word.romanization && word.romanization.toLowerCase().includes(searchTerm))
     );
     
     document.getElementById('dictionaryList').innerHTML = generateWordList(filteredWords);
 }
 
-// Обновляем вызов в showCardsPage()
-function showCardsPage() {
-    showDictionaryPage(); // Заменяем карточки на словарь
+// Работа с карточками
+function getDueWords() {
+    const now = Date.now();
+    return allWords.filter(word => {
+        if (!userProgress.cardIntervals?.[word.id]) return true;
+        return now >= userProgress.cardIntervals[word.id].nextReview;
+    });
 }
 
 // Вспомогательные функции
@@ -344,15 +188,10 @@ function speakWord(event, text) {
 
 // Заглушки для остальных функций
 function showLevelsPage() { alert("Раздел уровней в разработке"); }
-function showGrammarPage() { alert("Раздел грамматики в разработке"); }
-function showTextsPage() { alert("Раздел текстов в разработке"); }
 function showProgressPage() { alert("Раздел прогресса в разработке"); }
-function showSettingsPage() { alert("Раздел настроек в разработке"); }
 
 // Экспорт функций для HTML
 window.showHomePage = showHomePage;
-window.showCardsPage = showCardsPage;
-window.showWordCard = showWordCard;
-window.flipCard = flipCard;
-window.nextCard = nextCard;
+window.showDictionaryPage = showDictionaryPage;
+window.filterWords = filterWords;
 window.speakWord = speakWord;
