@@ -11,6 +11,7 @@ let allWords = [];
 let allLevels = [];
 let currentCardIndex = 0;
 let flashcards = [];
+let currentFlashcardIndex = 0;
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
@@ -69,8 +70,13 @@ function updateProgressUI() {
 
 // Навигация
 function showHomePage() {
-    const wordsForReview = getDueWords().slice(0, 6);
-    const recentLevels = allLevels.slice(0, 10);
+    fetch('data/words.json')
+        .then(response => response.json())
+        .then(words => {
+            const reviewWords = words.filter(word => 
+                userProgress.knownWords.includes(word.id) && 
+                isDueForReview(word.id)
+            ).slice(0, 6);
     
     document.getElementById('mainContent').innerHTML = `
         <div class="section-title">
@@ -133,28 +139,71 @@ function showHomePage() {
 }
 
 function showCardsPage() {
-    flashcards = getDueWords();
-    currentCardIndex = 0;
-    
-    if (flashcards.length === 0) {
-        flashcards = allWords.slice(0, 5); // Показываем первые 5 слов если нет для повторения
-    }
-    
-    renderFlashcard();
-    updateActiveNav('study');
+    fetch('data/words.json')
+        .then(response => response.json())
+        .then(words => {
+            flashcards = words.filter(word => 
+                userProgress.knownWords.includes(word.id) && 
+                isDueForReview(word.id)
+            );
+            
+            if (flashcards.length === 0) {
+                flashcards = words.slice(0, 5); // Показываем первые 5 слов если нет для повторения
+            }
+            
+            currentFlashcardIndex = 0;
+            renderFlashcard();
+            
+            updateActiveNav('study');
+        });
 }
 
+/ Новая функция renderFlashcard()
 function renderFlashcard() {
-    if (flashcards.length === 0) {
-        document.getElementById('mainContent').innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-check-circle"></i>
-                <h3>Нет слов для повторения</h3>
-                <button class="card-btn" onclick="showHomePage()">На главную</button>
+    if (flashcards.length === 0) return;
+    
+    const word = flashcards[currentFlashcardIndex];
+    const mainContent = document.getElementById('mainContent');
+    
+    mainContent.innerHTML = `
+        <div class="section-title">
+            <h2>Карточки для повторения</h2>
+            <div class="daily-count">${flashcards.length} слов</div>
+        </div>
+        
+        <div class="word-card" onclick="flipCard(this)">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="word-korean">${word.korean}</div>
+                    <div class="word-romanization">${word.romanization}</div>
+                    <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+                <div class="card-back">
+                    <div class="word-translation">${word.translation}</div>
+                    ${word.examples.map(ex => `
+                        <div class="example-container">
+                            <div class="example-korean">${ex.korean}</div>
+                            <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
-        `;
-        return;
-    }
+        </div>
+        
+        <div class="card-controls">
+            <button class="card-btn" onclick="nextCard(false)">
+                <i class="fas fa-times"></i> Еще раз
+            </button>
+            <button class="card-btn" onclick="nextCard(true)">
+                <i class="fas fa-check"></i> Знаю
+            </button>
+        </div>
+    `;
+}
     
     const word = flashcards[currentCardIndex];
     document.getElementById('mainContent').innerHTML = `
@@ -197,20 +246,20 @@ function renderFlashcard() {
     `;
 }
 
+/ Обновленная функция nextCard()
 function nextCard(know) {
     if (know) {
-        const wordId = flashcards[currentCardIndex].id;
-        if (!userProgress.knownWords.includes(wordId)) {
-            userProgress.knownWords.push(wordId);
+        if (!userProgress.knownWords.includes(flashcards[currentFlashcardIndex].id)) {
+            userProgress.knownWords.push(flashcards[currentFlashcardIndex].id);
             saveUserProgress();
         }
     }
     
-    currentCardIndex++;
-    if (currentCardIndex < flashcards.length) {
+    currentFlashcardIndex++;
+    if (currentFlashcardIndex < flashcards.length) {
         renderFlashcard();
     } else {
-        showCardsPage();
+        showCardsPage(); // Возвращаем к началу если карточки закончились
     }
 }
 
