@@ -4,89 +4,95 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Корейский тренажёр</title>
+  <meta name="description" content="Приложение для изучения корейских слов с карточками, тестами и системой уровней">
   <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4CAF50">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="page-container">
     <!-- Карточки -->
     <div id="cards" class="page active">
       <div class="card" id="main-card">
-        <div class="card-content" id="card-content"></div>
+        <div class="card-content" id="card-content">
+          <div class="empty-state">
+            <i class="fas fa-book-open"></i>
+            <p>Добавьте слова в словаре</p>
+          </div>
+        </div>
         <div class="card-actions">
-          <button id="prev-card" class="card-btn">←</button>
-          <span id="card-counter">0/0</span>
-          <button id="next-card" class="card-btn">→</button>
+          <button id="prev-card" class="card-btn" aria-label="Предыдущая карточка">←</button>
+          <span id="card-counter" aria-live="polite">0/0</span>
+          <button id="next-card" class="card-btn" aria-label="Следующая карточка">→</button>
         </div>
       </div>
     </div>
 
     <!-- Тест -->
-    <div id="test" class="page">
+    <div id="test" class="page" aria-hidden="true">
       <div class="card">
-        <div id="test-question"></div>
-        <div id="test-options"></div>
-        <div class="test-progress">
+        <div id="test-question" role="heading" aria-level="2"></div>
+        <div id="test-options" role="list"></div>
+        <div class="test-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
           <div id="test-progress-bar"></div>
         </div>
       </div>
     </div>
 
     <!-- Словарь -->
-    <div id="dictionary" class="page">
+    <div id="dictionary" class="page" aria-hidden="true">
       <div class="dictionary-tools">
-        <input type="text" id="word-search" placeholder="Поиск..." class="search-input">
-        <button id="add-word-btn" class="add-btn">+</button>
+        <input type="text" id="word-search" placeholder="Поиск..." class="search-input" aria-label="Поиск по словарю">
+        <button id="add-word-btn" class="add-btn" aria-label="Добавить новое слово">+</button>
       </div>
-      <div class="words-list" id="words-list"></div>
+      <div class="words-list" id="words-list" role="list"></div>
       
       <div class="add-word-form hidden" id="add-word-form">
-        <input type="text" id="new-korean-word" placeholder="Корейское слово" required>
-        <input type="text" id="new-russian-word" placeholder="Русский перевод" required>
-        <input type="text" id="new-word-example" placeholder="Пример (необязательно)">
+        <input type="text" id="new-korean-word" placeholder="Корейское слово" required aria-label="Корейское слово">
+        <input type="text" id="new-russian-word" placeholder="Русский перевод" required aria-label="Русский перевод">
+        <input type="text" id="new-word-example" placeholder="Пример (необязательно)" aria-label="Пример использования">
         <div class="form-actions">
-          <button id="cancel-add-word">Отмена</button>
-          <button id="save-word">Сохранить</button>
+          <button id="cancel-add-word" type="button">Отмена</button>
+          <button id="save-word" type="submit">Сохранить</button>
         </div>
       </div>
     </div>
 
     <!-- Уровни -->
-    <div id="levels" class="page">
+    <div id="levels" class="page" aria-hidden="true">
       <div class="card">
         <div class="levels-header">
           <h2>Мои уровни</h2>
-          <div class="level-progress">
+          <div class="level-progress" aria-live="polite">
             <span id="levels-completed">0</span>/<span id="levels-total">0</span>
           </div>
         </div>
-        <div class="levels-grid" id="levels-grid"></div>
+        <div class="levels-grid" id="levels-grid" role="list"></div>
       </div>
     </div>
   </div>
 
   <!-- Навигация -->
-  <nav class="navbar">
-    <a href="#cards" class="nav-link">
-      <i class="fas fa-layer-group"></i>
+  <nav class="navbar" aria-label="Основное меню">
+    <a href="#cards" class="nav-link active" aria-current="page">
+      <i class="fas fa-layer-group" aria-hidden="true"></i>
       <span>Карточки</span>
     </a>
     <a href="#test" class="nav-link">
-      <i class="fas fa-question-circle"></i>
+      <i class="fas fa-question-circle" aria-hidden="true"></i>
       <span>Тест</span>
     </a>
     <a href="#dictionary" class="nav-link">
-      <i class="fas fa-book"></i>
+      <i class="fas fa-book" aria-hidden="true"></i>
       <span>Словарь</span>
     </a>
     <a href="#levels" class="nav-link">
-      <i class="fas fa-trophy"></i>
+      <i class="fas fa-trophy" aria-hidden="true"></i>
       <span>Уровни</span>
     </a>
   </nav>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
