@@ -108,7 +108,7 @@ function initDictionary() {
     const filteredWords = filter ? words.filter(word => 
       word.korean.toLowerCase().includes(filter.toLowerCase()) || 
       word.russian.toLowerCase().includes(filter.toLowerCase())
-    : words;
+    ) : words; // Добавлена недостающая скобка здесь
 
     wordsList.innerHTML = filteredWords.length ? 
       filteredWords.map((word, index) => `
