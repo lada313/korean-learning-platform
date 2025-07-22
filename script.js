@@ -108,7 +108,10 @@ function isDueForReview(wordId) {
 }
 function showCardsPage() {
     fetch('data/words.json')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
         .then(words => {
             flashcards = words.filter(word => 
                 userProgress.knownWords.includes(word.id) && 
@@ -116,13 +119,22 @@ function showCardsPage() {
             );
             
             if (flashcards.length === 0) {
-                flashcards = words.slice(0, 5); // Показываем первые 5 слов если нет для повторения
+                flashcards = words.slice(0, 5);
             }
             
             currentFlashcardIndex = 0;
             renderFlashcard();
-            
             updateActiveNav('study');
+        })
+        .catch(error => {
+            console.error('Error loading words:', error);
+            document.getElementById('mainContent').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h3>Ошибка загрузки данных</h3>
+                    <button class="card-btn" onclick="showHomePage()">На главную</button>
+                </div>
+            `;
         });
 }
 
