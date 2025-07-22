@@ -103,7 +103,13 @@ function showHomePage() {
         });
 }
 function isDueForReview(wordId) {
+    // Если слово еще не изучено - показываем его
+    if (!userProgress.knownWords.includes(wordId)) return true;
+    
+    // Если нет данных о повторении - показываем
     if (!userProgress.cardIntervals?.[wordId]) return true;
+    
+    // Проверяем, пришло ли время повторения
     return Date.now() >= userProgress.cardIntervals[wordId].nextReview;
 }
 function showCardsPage() {
@@ -113,13 +119,20 @@ function showCardsPage() {
             return response.json();
         })
         .then(words => {
+            // Сначала показываем все слова, которые нужно повторить
             flashcards = words.filter(word => 
-                userProgress.knownWords.includes(word.id) && 
                 isDueForReview(word.id)
             );
             
+            // Если нет слов для повторения, берем новые слова
             if (flashcards.length === 0) {
-                flashcards = words.slice(0, 5);
+                flashcards = words.filter(word => 
+                    !userProgress.knownWords.includes(word.id)
+                ).slice(0, 5);
+                
+                if (flashcards.length === 0) {
+                    flashcards = words.slice(0, 5);
+                }
             }
             
             currentFlashcardIndex = 0;
@@ -169,14 +182,14 @@ function renderFlashcard() {
                 </div>
                 <div class="card-back">
                     <div class="word-translation">${word.translation}</div>
-                    ${word.examples.map(ex => `
+                    ${word.examples?.map(ex => `
                         <div class="example-container">
                             <div class="example-korean">${ex.korean}</div>
                             <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
                                 <i class="fas fa-volume-up"></i>
                             </button>
                         </div>
-                    `).join('')}
+                    `).join('') || ''}
                 </div>
             </div>
         </div>
@@ -191,47 +204,7 @@ function renderFlashcard() {
         </div>
     `;
 }
-    
-    const word = flashcards[currentCardIndex];
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Карточки для повторения</h2>
-            <div class="view-all" onclick="showHomePage()">На главную</div>
-        </div>
-        
-        <div class="word-card" onclick="flipCard(this)">
-            <div class="card-inner">
-                <div class="card-front">
-                    <div class="word-korean">${word.korean}</div>
-                    <div class="word-romanization">${word.romanization}</div>
-                    <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
-                        <i class="fas fa-volume-up"></i>
-                    </button>
-                </div>
-                <div class="card-back">
-                    <div class="word-translation">${word.translation}</div>
-                    ${word.examples.map(ex => `
-                        <div class="example-container">
-                            <div class="example-korean">${ex.korean}</div>
-                            <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
-                                <i class="fas fa-volume-up"></i>
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </div>
-        
-        <div class="card-controls">
-            <button class="card-btn" onclick="nextCard(false)">
-                <i class="fas fa-redo"></i> Снова
-            </button>
-            <button class="card-btn" onclick="nextCard(true); speakWord(null, '${word.korean}')">
-                <i class="fas fa-check-circle"></i> Знаю
-            </button>
-        </div>
-    `;
-}
+
 
 / Обновленная функция nextCard()
 function nextCard(know) {
