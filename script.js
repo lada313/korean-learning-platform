@@ -241,29 +241,27 @@ function saveWords() {
 }
 
 function initNavigation() {
-  const navLinks = document.querySelectorAll('.nav-link');
-  const pages = document.querySelectorAll('.page');
-
-  function setActivePage(pageId) {
-    pages.forEach(page => {
-      page.classList.toggle('active', page.id === pageId);
-    });
+    const pages = document.querySelectorAll('.page');
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    function setActivePage(pageId) {
+        pages.forEach(page => page.classList.remove('active'));
+        navLinks.forEach(link => link.classList.remove('active'));
+        
+        document.getElementById(pageId).classList.add('active');
+        document.querySelector(`.nav-link[href="#${pageId}"]`).classList.add('active');
+    }
     
     navLinks.forEach(link => {
-      link.classList.toggle('active', link.getAttribute('href') === `#${pageId}`);
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const pageId = this.getAttribute('href').substring(1);
+            setActivePage(pageId);
+            window.location.hash = pageId;
+        });
     });
-  }
-
-  navLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      const pageId = this.getAttribute('href').substring(1);
-      setActivePage(pageId);
-      window.location.hash = pageId;
-    });
-  });
-
-  // Инициализация по hash
-  const initialPage = window.location.hash.substring(1) || 'cards';
-  setActivePage(initialPage);
+    
+    // Инициализация по hash
+    const initialPage = window.location.hash.substring(1) || 'cards';
+    setActivePage(initialPage);
 }
