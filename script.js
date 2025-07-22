@@ -205,7 +205,6 @@ function renderFlashcard() {
     `;
 }
 
-
 / Обновленная функция nextCard()
 function nextCard(know) {
     if (know) {
