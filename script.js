@@ -151,7 +151,7 @@ function showCardsPage() {
         });
 }
 
-/ Новая функция renderFlashcard()
+// Новая функция renderFlashcard()
 function renderFlashcard() {
     if (flashcards.length === 0) {
         document.getElementById('mainContent').innerHTML = `
