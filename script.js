@@ -320,3 +320,4 @@ window.showWordCard = showWordCard;
 window.flipCard = flipCard;
 window.nextCard = nextCard;
 window.speakWord = speakWord;
+
