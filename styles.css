@@ -43,7 +43,7 @@ body {
     display: flex;
     justify-content: space-around;
     padding: 10px 0;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow);
     z-index: 100;
 }
 
@@ -52,17 +52,19 @@ body {
     flex-direction: column;
     align-items: center;
     text-decoration: none;
-    color: #666;
+    color: var(--text-medium);
     font-size: 12px;
+    padding: 5px;
+    transition: color 0.3s;
 }
 
 .nav-link i {
-    font-size: 20px;
-    margin-bottom: 5px;
+    font-size: 1.2rem;
+    margin-bottom: 3px;
 }
 
 .nav-link.active {
-    color: #4CAF50;
+    color: var(--primary);
 }
 
 /* Основной контейнер */
@@ -81,16 +83,16 @@ body {
     display: block;
 }
 
-/* Стили карточек */
+/* Карточки */
 .card {
+    width: 90%;
+    max-width: 400px;
+    margin: 20px auto;
     background-color: var(--card-bg);
     border-radius: 10px;
     padding: 20px;
     box-shadow: var(--shadow);
-    margin-bottom: 20px;
     perspective: 1000px;
-    max-width: 100%;
-    position: relative;
 }
 
 .card-content {
@@ -112,7 +114,9 @@ body {
     justify-content: center;
     align-items: center;
     padding: 20px;
-    text-align: center;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .card-front {
@@ -157,57 +161,6 @@ body {
 .card-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-}
-.card {
-    width: 90%;
-    max-width: 400px;
-    margin: 20px auto;
-    perspective: 1000px;
-}
-
-.card-content {
-    width: 100%;
-    height: 250px;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.6s;
-    cursor: pointer;
-}
-
-.card-front, .card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    border-radius: 10px;
-    background: white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.card-back {
-    transform: rotateY(180deg);
-}
-
-.card-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 20px;
-}
-
-.card-btn {
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-    cursor: pointer;
 }
 
 /* Словарь */
@@ -305,6 +258,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
+    margin-top: 20px;
 }
 
 .level-card {
@@ -329,6 +283,7 @@ body {
 
 .level-card.locked {
     opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .level-badge {
@@ -424,5 +379,13 @@ body {
     
     .nav-link i {
         font-size: 1rem;
+    }
+    
+    .word-korean {
+        font-size: 1.1rem;
+    }
+    
+    .word-translation {
+        font-size: 0.8rem;
     }
 }
