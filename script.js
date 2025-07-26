@@ -1,426 +1,492 @@
-:root {
-    --primary: #4CAF50;
-    --primary-dark: #388E3C;
-    --secondary: #2196F3;
-    --secondary-dark: #1976D2;
-    --accent: #FF9800;
-    --accent-dark: #F57C00;
-    --background: #f5f7fa;
-    --card-bg: #ffffff;
-    --text-dark: #333333;
-    --text-medium: #666666;
-    --text-light: #888888;
-    --border: #e0e0e0;
-    --success: #4CAF50;
-    --warning: #FF9800;
-    --error: #F44336;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+// Глобальные переменные
+let userProgress = {
+    knownWords: [],
+    difficultWords: [],
+    completedLevels: [],
+    currentLevel: 1,
+    cardIntervals: {}
+};
+
+let allWords = [];
+let allLevels = [];
+let allGrammar = [];
+let allTexts = [];
+let currentCardIndex = 0;
+let flashcards = [];
+
+// Инициализация приложения
+document.addEventListener('DOMContentLoaded', function() {
+    loadUserProgress();
+    loadData().then(() => {
+        showHomePage();
+    });
+    
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = function() {
+            console.log("Голоса загружены");
+        };
+    }
+});
+
+// Загрузка данных
+async function loadData() {
+    try {
+        const [wordsResponse, levelsResponse, grammarResponse, textsResponse] = await Promise.all([
+            fetch('data/words.json'),
+            fetch('data/levels.json'),
+            fetch('data/grammar.json'),
+            fetch('data/texts.json')
+        ]);
+        
+        allWords = await wordsResponse.json();
+        allLevels = await levelsResponse.json();
+        allGrammar = await grammarResponse.json();
+        allTexts = await textsResponse.json();
+    } catch (error) {
+        console.error("Ошибка загрузки данных:", error);
+    }
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+// Управление прогрессом
+function loadUserProgress() {
+    const savedProgress = localStorage.getItem('koreanPlatformProgress');
+    if (savedProgress) {
+        userProgress = JSON.parse(savedProgress);
+        updateProgressUI();
+    }
 }
 
-body {
-    background-color: var(--background);
-    color: var(--text-dark);
-    line-height: 1.6;
-    padding-bottom: 70px;
+function saveUserProgress() {
+    localStorage.setItem('koreanPlatformProgress', JSON.stringify(userProgress));
+    updateProgressUI();
 }
 
-header {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white;
-    padding: 15px;
-    text-align: center;
-    box-shadow: var(--shadow);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+function updateProgressUI() {
+    const progressPercent = allWords.length > 0 
+        ? Math.floor((userProgress.knownWords.length / allWords.length) * 100)
+        : 0;
+    
+    if (document.querySelector('.progress-bar')) {
+        document.querySelector('.progress-bar').style.width = `${progressPercent}%`;
+        document.querySelector('.progress-info span:first-child').textContent = `${progressPercent}% завершено`;
+        document.querySelector('.progress-info span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
+    }
 }
 
-.progress-container {
-    max-width: 800px;
-    margin: 10px auto 0;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
-    height: 6px;
-    overflow: hidden;
+// Навигация
+function showHomePage() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="modules-grid">
+            <a href="javascript:void(0)" onclick="showLevelsPage()" class="module-card">
+                <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
+                <h2>Уровни</h2>
+                <p>Пошаговое изучение от начального до продвинутого</p>
+            </a>
+
+            <a href="javascript:void(0)" onclick="showCardsPage()" class="module-card">
+                <div class="card-icon cards"><i class="fas fa-flipbook"></i></div>
+                <h2>Карточки</h2>
+                <p>Запоминание слов с интервальным повторением</p>
+            </a>
+
+            <a href="javascript:void(0)" onclick="showGrammarPage()" class="module-card">
+                <div class="card-icon grammar"><i class="fas fa-book-open"></i></div>
+                <h2>Грамматика</h2>
+                <p>Изучение правил и языковых конструкций</p>
+            </a>
+
+            <a href="javascript:void(0)" onclick="showTextsPage()" class="module-card">
+                <div class="card-icon text"><i class="fas fa-align-left"></i></div>
+                <h2>Текст и перевод</h2>
+                <p>Чтение и анализ текстов с переводом</p>
+            </a>
+        </div>
+
+        <div class="repetition-section">
+            <h2>Повторение</h2>
+            <p>Повторяйте изученный материал для закрепления знаний</p>
+            <button class="card-btn" onclick="showCardsPage()">
+                <i class="fas fa-redo"></i> Начать повторение
+            </button>
+        </div>
+    `;
+    updateActiveNav('home');
 }
 
-.progress-bar {
-    height: 100%;
-    background-color: white;
-    border-radius: 6px;
-    transition: width 0.3s ease;
+function showLevelsPage() {
+    const levelsHtml = allLevels.map(level => `
+        <div class="level-card" onclick="startLevel(${level.id})">
+            <h3>${level.title}</h3>
+            <p>${level.description}</p>
+            <div class="level-progress">
+                <div class="progress-bar" style="width: ${level.completed ? 100 : 0}%"></div>
+            </div>
+        </div>
+    `).join('');
+
+    document.getElementById('mainContent').innerHTML = `
+        <div class="section-title">
+            <h2>Уровни изучения</h2>
+            <div class="view-all" onclick="showHomePage()">На главную</div>
+        </div>
+        <div class="levels-container">
+            ${levelsHtml}
+        </div>
+    `;
+    updateActiveNav('levels');
 }
 
-.progress-info {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 6px;
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.9);
+function showCardsPage() {
+    flashcards = allWords.filter(word => isDueForReview(word.id));
+    currentCardIndex = 0;
+    renderFlashcard();
+    updateActiveNav('cards');
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 15px;
-}
-
-.section-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.section-title h2 {
-    font-size: 1.2rem;
-    color: var(--text-dark);
-}
-
-.view-all {
-    font-size: 0.85rem;
-    color: var(--secondary);
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.modules-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 12px;
-    margin-bottom: 25px;
-}
-
-.module-card {
-    background-color: var(--card-bg);
-    border-radius: 10px;
-    padding: 18px;
-    box-shadow: var(--shadow);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    text-decoration: none;
-    color: var(--text-dark);
-}
-
-.module-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-}
-
-.module-card h2 {
-    font-size: 1.1rem;
-    margin-bottom: 8px;
-}
-
-.module-card p {
-    font-size: 0.85rem;
-    color: var(--text-medium);
-}
-
-.card-icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    margin-bottom: 12px;
-}
-
-.card-icon.levels {
-    background-color: rgba(76, 175, 80, 0.15);
-    color: var(--primary);
-}
-
-.card-icon.cards {
-    background-color: rgba(33, 150, 243, 0.15);
-    color: var(--secondary);
-}
-
-.card-icon.grammar {
-    background-color: rgba(255, 152, 0, 0.15);
-    color: var(--accent);
-}
-
-.card-icon.text {
-    background-color: rgba(156, 39, 176, 0.15);
-    color: #9c27b0;
-}
-
-.repetition-section {
-    background-color: var(--card-bg);
-    border-radius: 10px;
-    padding: 18px;
-    box-shadow: var(--shadow);
-    margin-top: 20px;
-    text-align: center;
-}
-
-.repetition-section h2 {
-    margin-bottom: 10px;
-    color: var(--primary);
-}
-
-.repetition-section p {
-    margin-bottom: 15px;
-    color: var(--text-medium);
-}
-
-.word-card {
-    width: 100%;
-    max-width: 500px;
-    height: 350px;
-    margin: 0 auto 20px;
-    perspective: 1000px;
-}
-
-.card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-    box-shadow: var(--shadow);
-    border-radius: 15px;
-}
-
-.word-card.flipped .card-inner {
-    transform: rotateY(180deg);
-}
-
-.card-front, .card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: 15px;
-    padding: 25px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-.card-front {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white;
-}
-
-.card-back {
-    background: var(--card-bg);
-    color: var(--text-dark);
-    transform: rotateY(180deg);
-}
-
-.word-korean {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: white;
-    text-shadow: 0 0 2px rgba(0,0,0,0.3);
-    -webkit-font-smoothing: antialiased;
-}
-
-.word-translation {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    color: var(--primary-dark);
-    font-weight: bold;
-    -webkit-font-smoothing: antialiased;
-}
-
-.word-romanization {
-    font-style: italic;
-    color: rgba(255, 255, 255, 0.9);
-    margin-bottom: 15px;
-    font-size: 1.1rem;
-}
-
-.example-container {
-    display: flex;
-    align-items: center;
-    margin: 10px 0;
-    padding: 10px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 8px;
-    width: 90%;
-}
-
-.example-korean {
-    font-size: 1.2rem;
-    flex-grow: 1;
-    margin-right: 10px;
-    text-align: left;
-}
-
-.speak-btn, .speak-example-btn {
-    background: rgba(255,255,255,0.2);
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-}
-
-.speak-example-btn {
-    background: rgba(0,0,0,0.1);
-    color: var(--primary);
-}
-
-.speak-btn:hover, .speak-example-btn:hover {
-    background: rgba(255,255,255,0.3);
-    transform: scale(1.1);
-}
-
-.card-controls {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.card-btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 50px;
-    background: var(--primary);
-    color: white;
-    cursor: pointer;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-}
-
-.card-btn:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-}
-
-.card-btn:active {
-    transform: translateY(0);
-}
-
-.levels-container {
-    display: grid;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.level-card {
-    background-color: var(--card-bg);
-    border-radius: 10px;
-    padding: 15px;
-    box-shadow: var(--shadow);
-}
-
-.level-card h3 {
-    margin-bottom: 5px;
-    color: var(--primary-dark);
-}
-
-.level-progress {
-    height: 6px;
-    background-color: #f0f0f0;
-    border-radius: 3px;
-    margin-top: 10px;
-    overflow: hidden;
-}
-
-.level-progress .progress-bar {
-    height: 100%;
-    background-color: var(--primary);
-    border-radius: 3px;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 30px;
-    color: var(--text-medium);
-}
-
-.empty-state i {
-    font-size: 3rem;
-    color: var(--primary);
-    margin-bottom: 15px;
-}
-
-.empty-state h3 {
-    margin-bottom: 10px;
-    color: var(--text-dark);
-}
-
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: white;
-    display: flex;
-    justify-content: space-around;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
-    z-index: 100;
-    padding: 8px 0;
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 0.75rem;
-    color: var(--text-medium);
-    text-decoration: none;
-    padding: 5px 10px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.nav-item.active {
-    color: var(--primary);
-    transform: translateY(-5px);
-}
-
-.nav-item i {
-    font-size: 1.2rem;
-    margin-bottom: 3px;
-}
-
-@media (max-width: 600px) {
-    .word-card {
-        height: 300px;
+function renderFlashcard() {
+    if (flashcards.length === 0) {
+        document.getElementById('mainContent').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <h3>Нет слов для повторения</h3>
+                <button class="card-btn" onclick="showHomePage()">На главную</button>
+            </div>
+        `;
+        return;
     }
     
-    .word-korean {
-        font-size: 2rem;
+    const word = flashcards[currentCardIndex];
+    document.getElementById('mainContent').innerHTML = `
+        <div class="section-title">
+            <h2>Карточки для повторения</h2>
+            <div class="view-all" onclick="showHomePage()">На главную</div>
+        </div>
+        
+        <div class="word-card" onclick="flipCard(this)">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="word-korean">${word.korean}</div>
+                    <div class="word-romanization">${word.romanization}</div>
+                    <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+                <div class="card-back">
+                    <div class="word-translation">${word.translation}</div>
+                    ${word.examples?.map(ex => `
+                        <div class="example-container">
+                            <div class="example-korean">${ex.korean}</div>
+                            <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </div>
+                    `).join('') || ''}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-controls">
+            <button class="card-btn" onclick="nextCard(false)">
+                <i class="fas fa-redo"></i> Снова
+            </button>
+            <button class="card-btn" onclick="nextCard(true); speakWord(null, '${word.korean}')">
+                <i class="fas fa-check-circle"></i> Знаю
+            </button>
+        </div>
+    `;
+}
+
+function nextCard(know) {
+    if (know) {
+        if (!userProgress.knownWords.includes(flashcards[currentCardIndex].id)) {
+            userProgress.knownWords.push(flashcards[currentCardIndex].id);
+            saveUserProgress();
+        }
     }
     
-    .word-translation {
-        font-size: 1.5rem;
-    }
-    
-    .card-btn {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-    }
-    
-    .modules-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    currentCardIndex++;
+    if (currentCardIndex < flashcards.length) {
+        renderFlashcard();
+    } else {
+        showCardsPage();
     }
 }
+
+function showGrammarPage() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="section-title">
+            <h2>Грамматика корейского языка</h2>
+            <div class="view-all" onclick="showHomePage()">На главную</div>
+        </div>
+        <div class="grammar-container">
+            ${allGrammar.map(grammar => `
+                <div class="grammar-card">
+                    <h3>${grammar.title}</h3>
+                    <p>${grammar.description}</p>
+                    <div class="grammar-examples">
+                        ${grammar.examples.map(ex => `
+                            <div class="example">
+                                <div class="example-korean">${ex.korean}</div>
+                                <div class="example-translation">${ex.translation}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    updateActiveNav('grammar');
+}
+
+function showTextsPage() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="section-title">
+            <h2>Тексты для чтения</h2>
+            <div class="view-all" onclick="showHomePage()">На главную</div>
+        </div>
+        <div class="texts-container">
+            ${allTexts.map(text => `
+                <div class="text-card">
+                    <h3>${text.title}</h3>
+                    <div class="text-content">
+                        <p class="korean-text">${text.content}</p>
+                        <p class="translation">${text.translation}</p>
+                    </div>
+                    <button class="card-btn" onclick="speakText('${text.content}')">
+                        <i class="fas fa-volume-up"></i> Озвучить текст
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    updateActiveNav('texts');
+}
+
+function showProgressPage() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="section-title">
+            <h2>Ваш прогресс</h2>
+            <div class="view-all" onclick="showHomePage()">На главную</div>
+        </div>
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value">${userProgress.knownWords.length}</div>
+                <div class="stat-label">Изучено слов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${userProgress.completedLevels.length}</div>
+                <div class="stat-label">Пройдено уровней</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${userProgress.difficultWords.length}</div>
+                <div class="stat-label">Сложных слов</div>
+            </div>
+        </div>
+    `;
+    updateActiveNav('progress');
+}
+
+function showProfilePage() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="section-title">
+            <h2>Ваш профиль</h2>
+            <div class="view-all" onclick="showHomePage()">На главную</div>
+        </div>
+        <div class="profile-container">
+            <div class="profile-card">
+                <div class="profile-icon">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3>Ученик корейского</h3>
+                <p>Текущий уровень: ${userProgress.currentLevel}</p>
+            </div>
+        </div>
+    `;
+    updateActiveNav('profile');
+}
+
+function showSettingsPage() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="section-title">
+            <h2>Настройки</h2>
+            <div class="view-all" onclick="showHomePage()">На главную</div>
+        </div>
+        <div class="settings-container">
+            <div class="setting-item">
+                <label>Уведомления</label>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <label>Автоозвучка</label>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <button class="card-btn" onclick="resetProgress()">
+                <i class="fas fa-trash"></i> Сбросить прогресс
+            </button>
+        </div>
+    `;
+    updateActiveNav('settings');
+}
+
+function startLevel(levelId) {
+    const level = allLevels.find(l => l.id === levelId);
+    if (!level) return;
+    
+    document.getElementById('mainContent').innerHTML = `
+        <div class="section-title">
+            <h2>${level.title}</h2>
+            <div class="view-all" onclick="showLevelsPage()">Назад</div>
+        </div>
+        <div class="level-content">
+            <p>${level.content}</p>
+            <div class="level-words">
+                ${level.words.map(wordId => {
+                    const word = allWords.find(w => w.id === wordId);
+                    return word ? `
+                        <div class="word-preview-card" onclick="showWordCard(${word.id})">
+                            <div class="word-preview-korean">${word.korean}</div>
+                            <div class="word-preview-translation">${word.translation}</div>
+                        </div>
+                    ` : '';
+                }).join('')}
+            </div>
+            <button class="card-btn" onclick="completeLevel(${level.id})">
+                <i class="fas fa-check"></i> Завершить уровень
+            </button>
+        </div>
+    `;
+}
+
+function completeLevel(levelId) {
+    if (!userProgress.completedLevels.includes(levelId)) {
+        userProgress.completedLevels.push(levelId);
+        userProgress.currentLevel = Math.max(userProgress.currentLevel, levelId + 1);
+        saveUserProgress();
+    }
+    showLevelsPage();
+}
+
+function showWordCard(wordId) {
+    const word = allWords.find(w => w.id === wordId);
+    if (!word) return;
+    
+    document.getElementById('mainContent').innerHTML = `
+        <div class="word-card" onclick="flipCard(this)">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="word-korean">${word.korean}</div>
+                    <div class="word-romanization">${word.romanization}</div>
+                    <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+                <div class="card-back">
+                    <div class="word-translation">${word.translation}</div>
+                    ${word.examples.map(ex => `
+                        <div class="example-container">
+                            <div class="example-korean">${ex.korean}</div>
+                            <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        <div class="card-controls">
+            <button class="card-btn" onclick="showHomePage()">
+                <i class="fas fa-arrow-left"></i> Назад
+            </button>
+        </div>
+    `;
+}
+
+function flipCard(cardElement) {
+    cardElement.classList.toggle('flipped');
+}
+
+function isDueForReview(wordId) {
+    if (!userProgress.knownWords.includes(wordId)) return true;
+    if (!userProgress.cardIntervals?.[wordId]) return true;
+    return Date.now() >= userProgress.cardIntervals[wordId].nextReview;
+}
+
+function updateCardInterval(cardId, response) {
+    const intervals = {
+        'again': 1,
+        'hard': 3,
+        'easy': 7
+    };
+    
+    if (!userProgress.cardIntervals) {
+        userProgress.cardIntervals = {};
+    }
+    
+    userProgress.cardIntervals[cardId] = {
+        nextReview: Date.now() + intervals[response] * 86400000,
+        interval: intervals[response]
+    };
+}
+
+function updateActiveNav(section) {
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('onclick')?.includes(section)) {
+            item.classList.add('active');
+        }
+    });
+}
+
+function speakWord(event, text) {
+    event?.stopPropagation();
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+function resetProgress() {
+    if (confirm("Вы уверены, что хотите сбросить весь прогресс?")) {
+        localStorage.removeItem('koreanPlatformProgress');
+        userProgress = {
+            knownWords: [],
+            difficultWords: [],
+            completedLevels: [],
+            currentLevel: 1,
+            cardIntervals: {}
+        };
+        showHomePage();
+    }
+}
+
+// Экспорт функций для HTML
+window.showHomePage = showHomePage;
+window.showLevelsPage = showLevelsPage;
+window.showCardsPage = showCardsPage;
+window.showGrammarPage = showGrammarPage;
+window.showTextsPage = showTextsPage;
+window.showProgressPage = showProgressPage;
+window.showProfilePage = showProfilePage;
+window.showSettingsPage = showSettingsPage;
+window.showWordCard = showWordCard;
+window.flipCard = flipCard;
+window.nextCard = nextCard;
+window.speakWord = speakWord;
+window.speakText = speakText;
+window.resetProgress = resetProgress;
