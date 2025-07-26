@@ -397,6 +397,70 @@ body {
     border-radius: 3px;
 }
 
+/* ==================== КНОПКИ ОЗВУЧКИ ==================== */
+.speak-btn, .speak-example-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: var(--primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    box-shadow: var(--shadow);
+    font-size: 1.1rem;
+}
+
+.speak-btn {
+    background: var(--primary);
+    color: white;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+}
+
+.speak-example-btn {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--primary);
+}
+
+.speak-btn:hover, .speak-example-btn:hover {
+    background: var(--primary-dark);
+    color: white;
+    transform: scale(1.1);
+}
+
+.speak-btn:active, .speak-example-btn:active {
+    transform: scale(0.95);
+}
+
+/* Для карточек слов */
+.word-card .speak-btn {
+    background: var(--primary);
+}
+
+/* Для примеров в карточках */
+.example-container .speak-example-btn {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--primary);
+}
+
+/* Для текстов */
+.text-card .speak-btn {
+    background: var(--secondary);
+    margin-top: 15px;
+    position: static;
+    width: auto;
+    padding: 10px 20px;
+    border-radius: 50px;
+}
+
+.text-card .speak-btn i {
+    margin-right: 8px;
+}
 /* ==================== ПРОФИЛЬ ==================== */
 .profile-container {
     display: flex;
