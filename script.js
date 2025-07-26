@@ -1,4 +1,4 @@
-// Глобальные переменные
+// ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
 let userProgress = {
     knownWords: [],
     difficultWords: [],
@@ -9,57 +9,12 @@ let userProgress = {
 
 let allWords = [];
 let allLevels = [];
+let allGrammar = [];
+let allTexts = [];
 let currentCardIndex = 0;
 let flashcards = [];
 
-// Инициализация приложения
-document.addEventListener('DOMContentLoaded', function() {
-    loadUserProgress();
-    loadData().then(() => {
-        showHomePage();
-    });
-});
-
-function showHomePage() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="modules-grid">
-            <a href="javascript:void(0)" onclick="showLevelsPage()" class="module-card">
-                <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
-                <h2>Уровни</h2>
-                <p>Пошаговое изучение от начального до продвинутого</p>
-            </a>
-
-            <a href="javascript:void(0)" onclick="showCardsPage()" class="module-card">
-                <div class="card-icon cards"><i class="fas fa-flipbook"></i></div>
-                <h2>Карточки</h2>
-                <p>Запоминание слов с интервальным повторением</p>
-            </a>
-
-            <a href="javascript:void(0)" onclick="showGrammarPage()" class="module-card">
-                <div class="card-icon grammar"><i class="fas fa-book-open"></i></div>
-                <h2>Грамматика</h2>
-                <p>Изучение правил и языковых конструкций</p>
-            </a>
-
-            <a href="javascript:void(0)" onclick="showTextsPage()" class="module-card">
-                <div class="card-icon text"><i class="fas fa-align-left"></i></div>
-                <h2>Текст и перевод</h2>
-                <p>Чтение и анализ текстов с переводом</p>
-            </a>
-        </div>
-
-        <div class="repetition-section">
-            <h2>Повторение</h2>
-            <p>Повторяйте изученный материал для закрепления знаний</p>
-            <button class="card-btn" onclick="showCardsPage()">
-                <i class="fas fa-redo"></i> Начать повторение
-            </button>
-        </div>
-    `;
-    updateActiveNav('home');
-}
-
-// Инициализация приложения
+// ==================== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ====================
 document.addEventListener('DOMContentLoaded', function() {
     loadUserProgress();
     loadData().then(() => {
@@ -73,457 +28,522 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Загрузка данных
+// ==================== ЗАГРУЗКА ДАННЫХ ====================
 async function loadData() {
     try {
-        const [wordsResponse, levelsResponse, grammarResponse, textsResponse] = await Promise.all([
-            fetch('data/words.json'),
-            fetch('data/levels.json'),
-            fetch('data/grammar.json'),
-            fetch('data/texts.json')
+        // Основные данные (обязательные)
+        const [wordsResponse, levelsResponse] = await Promise.all([
+            fetch('data/words.json').catch(() => ({ ok: false })),
+            fetch('data/levels.json').catch(() => ({ ok: false }))
         ]);
+        
+        // Проверка успешности загрузки
+        if (!wordsResponse.ok || !levelsResponse.ok) {
+            throw new Error("Не удалось загрузить основные данные");
+        }
         
         allWords = await wordsResponse.json();
         allLevels = await levelsResponse.json();
-        allGrammar = await grammarResponse.json();
-        allTexts = await textsResponse.json();
+        
+        // Дополнительные данные (не блокируют работу)
+        try {
+            const [grammarResponse, textsResponse] = await Promise.all([
+                fetch('data/grammar.json').catch(() => ({ ok: false })),
+                fetch('data/texts.json').catch(() => ({ ok: false }))
+            ]);
+            
+            if (grammarResponse.ok) allGrammar = await grammarResponse.json();
+            if (textsResponse.ok) allTexts = await textsResponse.json();
+            
+        } catch (e) {
+            console.warn("Не удалось загрузить дополнительные данные:", e);
+        }
+        
     } catch (error) {
-        console.error("Ошибка загрузки данных:", error);
+        console.error("Критическая ошибка загрузки:", error);
+        // Создаем минимальные данные для работы
+        allWords = allWords.length ? allWords : [
+            {
+                id: 1,
+                korean: "안녕하세요",
+                romanization: "annyeonghaseyo",
+                translation: "Здравствуйте",
+                examples: [{
+                    korean: "안녕하세요, 만나서 반갑습니다",
+                    translation: "Здравствуйте, приятно познакомиться"
+                }]
+            }
+        ];
+        
+        allLevels = allLevels.length ? allLevels : [
+            {
+                id: 1,
+                title: "Начальный уровень",
+                description: "Основные фразы",
+                words: [1],
+                completed: false
+            }
+        ];
     }
 }
 
-// Управление прогрессом
+// ==================== УПРАВЛЕНИЕ ПРОГРЕССОМ ====================
 function loadUserProgress() {
     const savedProgress = localStorage.getItem('koreanPlatformProgress');
     if (savedProgress) {
-        userProgress = JSON.parse(savedProgress);
-        updateProgressUI();
+        try {
+            userProgress = JSON.parse(savedProgress);
+            updateProgressUI();
+        } catch (e) {
+            console.error("Ошибка загрузки прогресса:", e);
+        }
     }
 }
 
 function saveUserProgress() {
-    localStorage.setItem('koreanPlatformProgress', JSON.stringify(userProgress));
-    updateProgressUI();
+    try {
+        localStorage.setItem('koreanPlatformProgress', JSON.stringify(userProgress));
+        updateProgressUI();
+    } catch (e) {
+        console.error("Ошибка сохранения прогресса:", e);
+    }
 }
 
 function updateProgressUI() {
-    const progressPercent = allWords.length > 0 
-        ? Math.floor((userProgress.knownWords.length / allWords.length) * 100)
-        : 0;
-    
-    if (document.querySelector('.progress-bar')) {
-        document.querySelector('.progress-bar').style.width = `${progressPercent}%`;
-        document.querySelector('.progress-info span:first-child').textContent = `${progressPercent}% завершено`;
-        document.querySelector('.progress-info span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
+    try {
+        const progressPercent = allWords.length > 0 
+            ? Math.floor((userProgress.knownWords.length / allWords.length) * 100)
+            : 0;
+        
+        const progressBar = document.querySelector('.progress-bar');
+        const progressInfo = document.querySelector('.progress-info');
+        
+        if (progressBar && progressInfo) {
+            progressBar.style.width = `${progressPercent}%`;
+            progressInfo.querySelector('span:first-child').textContent = `${progressPercent}% завершено`;
+            progressInfo.querySelector('span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
+        }
+    } catch (e) {
+        console.error("Ошибка обновления UI:", e);
     }
 }
-function showProfilePage() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="profile-container">
-            <div class="profile-card">
-                <div class="profile-avatar">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <h2>Мой профиль</h2>
-                <div class="profile-info">
-                    <p><strong>Уровень:</strong> ${userProgress.currentLevel}</p>
-                    <p><strong>Изучено слов:</strong> ${userProgress.knownWords.length}</p>
-                    <p><strong>Пройдено уроков:</strong> ${userProgress.completedLevels.length}</p>
-                </div>
-                <button class="card-btn" onclick="showHomePage()">
-                    <i class="fas fa-arrow-left"></i> На главную
+
+// ==================== НАВИГАЦИЯ ====================
+function showHomePage() {
+    try {
+        document.getElementById('mainContent').innerHTML = `
+            <div class="modules-grid">
+                <a href="javascript:void(0)" onclick="showLevelsPage()" class="module-card">
+                    <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
+                    <h2>Уровни</h2>
+                    <p>Пошаговое изучение от начального до продвинутого</p>
+                </a>
+
+                <a href="javascript:void(0)" onclick="showCardsPage()" class="module-card">
+                    <div class="card-icon cards"><i class="far fa-sticky-note"></i></div>
+                    <h2>Карточки</h2>
+                    <p>Запоминание слов с интервальным повторением</p>
+                </a>
+
+                <a href="javascript:void(0)" onclick="showGrammarPage()" class="module-card">
+                    <div class="card-icon grammar"><i class="fas fa-book-open"></i></div>
+                    <h2>Грамматика</h2>
+                    <p>Изучение правил и языковых конструкций</p>
+                </a>
+
+                <a href="javascript:void(0)" onclick="showTextsPage()" class="module-card">
+                    <div class="card-icon text"><i class="fas fa-align-left"></i></div>
+                    <h2>Текст и перевод</h2>
+                    <p>Чтение и анализ текстов с переводом</p>
+                </a>
+            </div>
+
+            <div class="repetition-section">
+                <h2>Повторение</h2>
+                <p>Повторяйте изученный материал для закрепления знаний</p>
+                <button class="card-btn" onclick="showCardsPage()">
+                    <i class="fas fa-redo"></i> Начать повторение
                 </button>
             </div>
-        </div>
-    `;
-    updateActiveNav('profile');
-}
-
-// Навигация
-function showHomePage() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="modules-grid">
-            <a href="javascript:void(0)" onclick="showLevelsPage()" class="module-card">
-                <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
-                <h2>Уровни</h2>
-                <p>Пошаговое изучение от начального до продвинутого</p>
-            </a>
-
-            <a href="javascript:void(0)" onclick="showCardsPage()" class="module-card">
-                <div class="card-icon cards"><i class="fas fa-flipbook"></i></div>
-                <h2>Карточки</h2>
-                <p>Запоминание слов с интервальным повторением</p>
-            </a>
-
-            <a href="javascript:void(0)" onclick="showGrammarPage()" class="module-card">
-                <div class="card-icon grammar"><i class="fas fa-book-open"></i></div>
-                <h2>Грамматика</h2>
-                <p>Изучение правил и языковых конструкций</p>
-            </a>
-
-            <a href="javascript:void(0)" onclick="showTextsPage()" class="module-card">
-                <div class="card-icon text"><i class="fas fa-align-left"></i></div>
-                <h2>Текст и перевод</h2>
-                <p>Чтение и анализ текстов с переводом</p>
-            </a>
-        </div>
-
-        <div class="repetition-section">
-            <h2>Повторение</h2>
-            <p>Повторяйте изученный материал для закрепления знаний</p>
-            <button class="card-btn" onclick="showCardsPage()">
-                <i class="fas fa-redo"></i> Начать повторение
-            </button>
-        </div>
-    `;
-    updateActiveNav('home');
+        `;
+        updateActiveNav('home');
+    } catch (e) {
+        console.error("Ошибка отображения главной страницы:", e);
+        showErrorPage();
+    }
 }
 
 function showLevelsPage() {
-    const levelsHtml = allLevels.map(level => `
-        <div class="level-card" onclick="startLevel(${level.id})">
-            <h3>${level.title}</h3>
-            <p>${level.description}</p>
-            <div class="level-progress">
-                <div class="progress-bar" style="width: ${level.completed ? 100 : 0}%"></div>
+    try {
+        const levelsHtml = allLevels.map(level => `
+            <div class="level-card" onclick="startLevel(${level.id})">
+                <h3>${level.title}</h3>
+                <p>${level.description}</p>
+                <div class="level-progress">
+                    <div class="progress-bar" 
+                         style="width: ${level.completed ? 100 : 0}%"></div>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `).join('');
 
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Уровни изучения</h2>
-            <div class="view-all" onclick="showHomePage()">На главную</div>
-        </div>
-        <div class="levels-container">
-            ${levelsHtml}
-        </div>
-    `;
-    updateActiveNav('levels');
+        document.getElementById('mainContent').innerHTML = `
+            <div class="section-title">
+                <h2>Уровни изучения</h2>
+                <div class="view-all" onclick="showHomePage()">На главную</div>
+            </div>
+            <div class="levels-container">
+                ${levelsHtml}
+            </div>
+        `;
+        updateActiveNav('levels');
+    } catch (e) {
+        console.error("Ошибка отображения уровней:", e);
+        showErrorPage();
+    }
+}
+
+function startLevel(levelId) {
+    try {
+        const level = allLevels.find(l => l.id === levelId);
+        if (!level) return;
+        
+        document.getElementById('mainContent').innerHTML = `
+            <div class="section-title">
+                <h2>${level.title}</h2>
+                <div class="view-all" onclick="showLevelsPage()">Назад</div>
+            </div>
+            <div class="level-content">
+                ${level.content ? `<p>${level.content}</p>` : ''}
+                <div class="level-words">
+                    ${level.words.map(wordId => {
+                        const word = allWords.find(w => w.id === wordId);
+                        return word ? `
+                            <div class="word-preview-card" onclick="showWordCard(${word.id})">
+                                <div class="word-preview-korean">${word.korean}</div>
+                                <div class="word-preview-translation">${word.translation}</div>
+                            </div>
+                        ` : '';
+                    }).join('')}
+                </div>
+                <button class="card-btn" onclick="completeLevel(${level.id})">
+                    <i class="fas fa-check"></i> Завершить уровень
+                </button>
+            </div>
+        `;
+    } catch (e) {
+        console.error("Ошибка запуска уровня:", e);
+        showErrorPage();
+    }
+}
+
+function completeLevel(levelId) {
+    try {
+        if (!userProgress.completedLevels.includes(levelId)) {
+            userProgress.completedLevels.push(levelId);
+            userProgress.currentLevel = Math.max(userProgress.currentLevel, levelId + 1);
+            saveUserProgress();
+        }
+        showLevelsPage();
+    } catch (e) {
+        console.error("Ошибка завершения уровня:", e);
+    }
 }
 
 function showCardsPage() {
-    flashcards = allWords.filter(word => isDueForReview(word.id));
-    currentCardIndex = 0;
-    renderFlashcard();
-    updateActiveNav('cards');
+    try {
+        flashcards = allWords.filter(word => isDueForReview(word.id));
+        currentCardIndex = 0;
+        
+        if (flashcards.length === 0) {
+            flashcards = allWords.slice(0, 5);
+        }
+        
+        renderFlashcard();
+        updateActiveNav('cards');
+    } catch (e) {
+        console.error("Ошибка отображения карточек:", e);
+        showErrorPage();
+    }
 }
 
 function renderFlashcard() {
-    if (flashcards.length === 0) {
-        document.getElementById('mainContent').innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-check-circle"></i>
-                <h3>Нет слов для повторения</h3>
-                <button class="card-btn" onclick="showHomePage()">На главную</button>
-            </div>
-        `;
-        return;
-    }
-    
-    const word = flashcards[currentCardIndex];
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Карточки для повторения</h2>
-            <div class="view-all" onclick="showHomePage()">На главную</div>
-        </div>
-        
-        <div class="word-card" onclick="flipCard(this)">
-            <div class="card-inner">
-                <div class="card-front">
-                    <div class="word-korean">${word.korean}</div>
-                    <div class="word-romanization">${word.romanization}</div>
-                    <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
-                        <i class="fas fa-volume-up"></i>
+    try {
+        if (flashcards.length === 0) {
+            document.getElementById('mainContent').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Нет слов для изучения</h3>
+                    <button class="card-btn" onclick="showHomePage()">
+                        На главную
                     </button>
                 </div>
-                <div class="card-back">
-                    <div class="word-translation">${word.translation}</div>
-                    ${word.examples?.map(ex => `
-                        <div class="example-container">
-                            <div class="example-korean">${ex.korean}</div>
-                            <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
-                                <i class="fas fa-volume-up"></i>
-                            </button>
-                        </div>
-                    `).join('') || ''}
+            `;
+            return;
+        }
+        
+        const word = flashcards[currentCardIndex];
+        document.getElementById('mainContent').innerHTML = `
+            <div class="section-title">
+                <h2>Карточки</h2>
+                <div class="view-all" onclick="showHomePage()">На главную</div>
+            </div>
+            
+            <div class="word-card" onclick="flipCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="word-korean">${word.korean}</div>
+                        <div class="word-romanization">${word.romanization}</div>
+                        <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                    </div>
+                    <div class="card-back">
+                        <div class="word-translation">${word.translation}</div>
+                        ${word.examples?.map(ex => `
+                            <div class="example-container">
+                                <div class="example-korean">${ex.korean}</div>
+                                <button class="speak-example-btn" 
+                                        onclick="speakWord(event, '${ex.korean}')">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            </div>
+                        `).join('') || ''}
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="card-controls">
-            <button class="card-btn" onclick="nextCard(false)">
-                <i class="fas fa-redo"></i> Снова
-            </button>
-            <button class="card-btn" onclick="nextCard(true); speakWord(null, '${word.korean}')">
-                <i class="fas fa-check-circle"></i> Знаю
-            </button>
-        </div>
-    `;
+            
+            <div class="card-controls">
+                <button class="card-btn" onclick="nextCard(false)">
+                    <i class="fas fa-redo"></i> Снова
+                </button>
+                <button class="card-btn primary" onclick="nextCard(true)">
+                    <i class="fas fa-check-circle"></i> Знаю
+                </button>
+            </div>
+            
+            <div class="progress-text">
+                ${currentCardIndex + 1} / ${flashcards.length}
+            </div>
+        `;
+    } catch (e) {
+        console.error("Ошибка рендеринга карточки:", e);
+        showErrorPage();
+    }
 }
 
 function nextCard(know) {
-    if (know) {
-        if (!userProgress.knownWords.includes(flashcards[currentCardIndex].id)) {
-            userProgress.knownWords.push(flashcards[currentCardIndex].id);
-            saveUserProgress();
+    try {
+        const currentWord = flashcards[currentCardIndex];
+        
+        if (know) {
+            if (!userProgress.knownWords.includes(currentWord.id)) {
+                userProgress.knownWords.push(currentWord.id);
+            }
+            updateCardInterval(currentWord.id, 'easy');
+        } else {
+            updateCardInterval(currentWord.id, 'again');
         }
-    }
-    
-    currentCardIndex++;
-    if (currentCardIndex < flashcards.length) {
-        renderFlashcard();
-    } else {
-        showCardsPage();
+        
+        saveUserProgress();
+        currentCardIndex++;
+        
+        if (currentCardIndex < flashcards.length) {
+            renderFlashcard();
+        } else {
+            showCardsPage();
+        }
+    } catch (e) {
+        console.error("Ошибка переключения карточки:", e);
     }
 }
 
 function showGrammarPage() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Грамматика корейского языка</h2>
-            <div class="view-all" onclick="showHomePage()">На главную</div>
-        </div>
-        <div class="grammar-container">
-            ${allGrammar.map(grammar => `
-                <div class="grammar-card">
-                    <h3>${grammar.title}</h3>
-                    <p>${grammar.description}</p>
-                    <div class="grammar-examples">
-                        ${grammar.examples.map(ex => `
-                            <div class="example">
+    try {
+        if (allGrammar.length === 0) {
+            allGrammar = [{
+                title: "Основы грамматики",
+                description: "Базовые правила корейского языка",
+                examples: [{
+                    korean: "는/은",
+                    translation: "Тематический маркер"
+                }]
+            }];
+        }
+        
+        document.getElementById('mainContent').innerHTML = `
+            <div class="section-title">
+                <h2>Грамматика корейского</h2>
+                <div class="view-all" onclick="showHomePage()">На главную</div>
+            </div>
+            <div class="grammar-container">
+                ${allGrammar.map(item => `
+                    <div class="grammar-card">
+                        <h3>${item.title}</h3>
+                        <p>${item.description}</p>
+                        ${item.examples?.map(ex => `
+                            <div class="example-container">
                                 <div class="example-korean">${ex.korean}</div>
                                 <div class="example-translation">${ex.translation}</div>
                             </div>
-                        `).join('')}
+                        `).join('') || ''}
                     </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-    updateActiveNav('grammar');
+                `).join('')}
+            </div>
+        `;
+        updateActiveNav('grammar');
+    } catch (e) {
+        console.error("Ошибка отображения грамматики:", e);
+        showErrorPage();
+    }
 }
 
 function showTextsPage() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Тексты для чтения</h2>
-            <div class="view-all" onclick="showHomePage()">На главную</div>
-        </div>
-        <div class="texts-container">
-            ${allTexts.map(text => `
-                <div class="text-card">
-                    <h3>${text.title}</h3>
-                    <div class="text-content">
-                        <p class="korean-text">${text.content}</p>
-                        <p class="translation">${text.translation}</p>
+    try {
+        if (allTexts.length === 0) {
+            allTexts = [{
+                title: "Приветствие",
+                content: "안녕하세요",
+                translation: "Здравствуйте"
+            }];
+        }
+        
+        document.getElementById('mainContent').innerHTML = `
+            <div class="section-title">
+                <h2>Тексты для чтения</h2>
+                <div class="view-all" onclick="showHomePage()">На главную</div>
+            </div>
+            <div class="texts-container">
+                ${allTexts.map(text => `
+                    <div class="text-card">
+                        <h3>${text.title}</h3>
+                        <div class="text-content">
+                            <p class="korean-text">${text.content}</p>
+                            <p class="translation">${text.translation}</p>
+                        </div>
+                        <button class="card-btn" onclick="speakText('${text.content}')">
+                            <i class="fas fa-volume-up"></i> Озвучить текст
+                        </button>
                     </div>
-                    <button class="card-btn" onclick="speakText('${text.content}')">
-                        <i class="fas fa-volume-up"></i> Озвучить текст
-                    </button>
-                </div>
-            `).join('')}
-        </div>
-    `;
-    updateActiveNav('texts');
+                `).join('')}
+            </div>
+        `;
+        updateActiveNav('texts');
+    } catch (e) {
+        console.error("Ошибка отображения текстов:", e);
+        showErrorPage();
+    }
 }
 
 function showProgressPage() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Ваш прогресс</h2>
-            <div class="view-all" onclick="showHomePage()">На главную</div>
-        </div>
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-value">${userProgress.knownWords.length}</div>
-                <div class="stat-label">Изучено слов</div>
+    try {
+        document.getElementById('mainContent').innerHTML = `
+            <div class="section-title">
+                <h2>Ваш прогресс</h2>
+                <div class="view-all" onclick="showHomePage()">На главную</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value">${userProgress.completedLevels.length}</div>
-                <div class="stat-label">Пройдено уровней</div>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value">${userProgress.knownWords.length}</div>
+                    <div class="stat-label">Изучено слов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${userProgress.completedLevels.length}</div>
+                    <div class="stat-label">Пройдено уровней</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${userProgress.difficultWords.length}</div>
+                    <div class="stat-label">Сложных слов</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value">${userProgress.difficultWords.length}</div>
-                <div class="stat-label">Сложных слов</div>
-            </div>
-        </div>
-    `;
-    updateActiveNav('progress');
+        `;
+        updateActiveNav('progress');
+    } catch (e) {
+        console.error("Ошибка отображения прогресса:", e);
+        showErrorPage();
+    }
 }
 
 function showProfilePage() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Ваш профиль</h2>
-            <div class="view-all" onclick="showHomePage()">На главную</div>
-        </div>
-        <div class="profile-container">
-            <div class="profile-card">
-                <div class="profile-icon">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <h3>Ученик корейского</h3>
-                <p>Текущий уровень: ${userProgress.currentLevel}</p>
+    try {
+        document.getElementById('mainContent').innerHTML = `
+            <div class="section-title">
+                <h2>Ваш профиль</h2>
+                <div class="view-all" onclick="showHomePage()">На главную</div>
             </div>
-        </div>
-    `;
-    updateActiveNav('profile');
+            <div class="profile-container">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <h3>${localStorage.getItem('userName') || 'Ученик корейского'}</h3>
+                    <div class="profile-info">
+                        <p><strong>Уровень:</strong> ${userProgress.currentLevel}</p>
+                        <p><strong>Изучено слов:</strong> ${userProgress.knownWords.length}</p>
+                        <p><strong>Пройдено уроков:</strong> ${userProgress.completedLevels.length}</p>
+                    </div>
+                    <button class="card-btn" onclick="showHomePage()">
+                        <i class="fas fa-arrow-left"></i> На главную
+                    </button>
+                </div>
+            </div>
+        `;
+        updateActiveNav('profile');
+    } catch (e) {
+        console.error("Ошибка отображения профиля:", e);
+        showErrorPage();
+    }
 }
 
 function showSettingsPage() {
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>Настройки</h2>
-            <div class="view-all" onclick="showHomePage()">На главную</div>
-        </div>
-        <div class="settings-container">
-            <div class="setting-item">
-                <label>Уведомления</label>
-                <label class="switch">
-                    <input type="checkbox" checked>
-                    <span class="slider round"></span>
-                </label>
+    try {
+        document.getElementById('mainContent').innerHTML = `
+            <div class="section-title">
+                <h2>Настройки</h2>
+                <div class="view-all" onclick="showHomePage()">На главную</div>
             </div>
-            <div class="setting-item">
-                <label>Автоозвучка</label>
-                <label class="switch">
-                    <input type="checkbox" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <button class="card-btn" onclick="resetProgress()">
-                <i class="fas fa-trash"></i> Сбросить прогресс
-            </button>
-        </div>
-    `;
-    updateActiveNav('settings');
-}
-
-function startLevel(levelId) {
-    const level = allLevels.find(l => l.id === levelId);
-    if (!level) return;
-    
-    document.getElementById('mainContent').innerHTML = `
-        <div class="section-title">
-            <h2>${level.title}</h2>
-            <div class="view-all" onclick="showLevelsPage()">Назад</div>
-        </div>
-        <div class="level-content">
-            <p>${level.content}</p>
-            <div class="level-words">
-                ${level.words.map(wordId => {
-                    const word = allWords.find(w => w.id === wordId);
-                    return word ? `
-                        <div class="word-preview-card" onclick="showWordCard(${word.id})">
-                            <div class="word-preview-korean">${word.korean}</div>
-                            <div class="word-preview-translation">${word.translation}</div>
-                        </div>
-                    ` : '';
-                }).join('')}
-            </div>
-            <button class="card-btn" onclick="completeLevel(${level.id})">
-                <i class="fas fa-check"></i> Завершить уровень
-            </button>
-        </div>
-    `;
-}
-
-function completeLevel(levelId) {
-    if (!userProgress.completedLevels.includes(levelId)) {
-        userProgress.completedLevels.push(levelId);
-        userProgress.currentLevel = Math.max(userProgress.currentLevel, levelId + 1);
-        saveUserProgress();
-    }
-    showLevelsPage();
-}
-
-function showWordCard(wordId) {
-    const word = allWords.find(w => w.id === wordId);
-    if (!word) return;
-    
-    document.getElementById('mainContent').innerHTML = `
-        <div class="word-card" onclick="flipCard(this)">
-            <div class="card-inner">
-                <div class="card-front">
-                    <div class="word-korean">${word.korean}</div>
-                    <div class="word-romanization">${word.romanization}</div>
-                    <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
-                        <i class="fas fa-volume-up"></i>
-                    </button>
+            <div class="settings-container">
+                <div class="setting-item">
+                    <label>Уведомления</label>
+                    <label class="switch">
+                        <input type="checkbox" id="notifications" checked>
+                        <span class="slider round"></span>
+                    </label>
                 </div>
-                <div class="card-back">
-                    <div class="word-translation">${word.translation}</div>
-                    ${word.examples.map(ex => `
-                        <div class="example-container">
-                            <div class="example-korean">${ex.korean}</div>
-                            <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
-                                <i class="fas fa-volume-up"></i>
-                            </button>
-                        </div>
-                    `).join('')}
+                <div class="setting-item">
+                    <label>Автоозвучка</label>
+                    <label class="switch">
+                        <input type="checkbox" id="autoSpeak" checked>
+                        <span class="slider round"></span>
+                    </label>
                 </div>
+                <div class="setting-item">
+                    <label>Имя пользователя</label>
+                    <input type="text" id="userName" 
+                           value="${localStorage.getItem('userName') || ''}"
+                           placeholder="Введите ваше имя">
+                </div>
+                <button class="card-btn" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> Сохранить
+                </button>
+                <button class="card-btn danger" onclick="resetProgress()">
+                    <i class="fas fa-trash"></i> Сбросить прогресс
+                </button>
             </div>
-        </div>
-        <div class="card-controls">
-            <button class="card-btn" onclick="showHomePage()">
-                <i class="fas fa-arrow-left"></i> Назад
-            </button>
-        </div>
-    `;
-}
-
-function flipCard(cardElement) {
-    cardElement.classList.toggle('flipped');
-}
-
-function isDueForReview(wordId) {
-    if (!userProgress.knownWords.includes(wordId)) return true;
-    if (!userProgress.cardIntervals?.[wordId]) return true;
-    return Date.now() >= userProgress.cardIntervals[wordId].nextReview;
-}
-
-function updateCardInterval(cardId, response) {
-    const intervals = {
-        'again': 1,
-        'hard': 3,
-        'easy': 7
-    };
-    
-    if (!userProgress.cardIntervals) {
-        userProgress.cardIntervals = {};
-    }
-    
-    userProgress.cardIntervals[cardId] = {
-        nextReview: Date.now() + intervals[response] * 86400000,
-        interval: intervals[response]
-    };
-}
-
-function updateActiveNav(section) {
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('onclick')?.includes(section)) {
-            item.classList.add('active');
-        }
-    });
-}
-
-function speakWord(event, text) {
-    event?.stopPropagation();
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        window.speechSynthesis.speak(utterance);
+        `;
+        updateActiveNav('settings');
+    } catch (e) {
+        console.error("Ошибка отображения настроек:", e);
+        showErrorPage();
     }
 }
 
-function speakText(text) {
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
+function saveSettings() {
+    try {
+        const userName = document.getElementById('userName').value;
+        localStorage.setItem('userName', userName);
+        alert("Настройки сохранены!");
+    } catch (e) {
+        console.error("Ошибка сохранения настроек:", e);
     }
 }
 
@@ -541,7 +561,131 @@ function resetProgress() {
     }
 }
 
-// Экспорт функций для HTML
+function showWordCard(wordId) {
+    try {
+        const word = allWords.find(w => w.id === wordId);
+        if (!word) return;
+        
+        document.getElementById('mainContent').innerHTML = `
+            <div class="word-card" onclick="flipCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="word-korean">${word.korean}</div>
+                        <div class="word-romanization">${word.romanization}</div>
+                        <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                    </div>
+                    <div class="card-back">
+                        <div class="word-translation">${word.translation}</div>
+                        ${word.examples?.map(ex => `
+                            <div class="example-container">
+                                <div class="example-korean">${ex.korean}</div>
+                                <button class="speak-example-btn" 
+                                        onclick="speakWord(event, '${ex.korean}')">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            </div>
+                        `).join('') || ''}
+                    </div>
+                </div>
+            </div>
+            <div class="card-controls">
+                <button class="card-btn" onclick="showHomePage()">
+                    <i class="fas fa-arrow-left"></i> Назад
+                </button>
+            </div>
+        `;
+    } catch (e) {
+        console.error("Ошибка отображения слова:", e);
+        showErrorPage();
+    }
+}
+
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+function updateActiveNav(section) {
+    try {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('onclick')?.includes(section)) {
+                item.classList.add('active');
+            }
+        });
+    } catch (e) {
+        console.error("Ошибка обновления навигации:", e);
+    }
+}
+
+function speakWord(event, text) {
+    try {
+        event?.stopPropagation();
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ko-KR';
+            utterance.rate = 0.8;
+            window.speechSynthesis.speak(utterance);
+        }
+    } catch (e) {
+        console.error("Ошибка воспроизведения:", e);
+    }
+}
+
+function speakText(text) {
+    try {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ko-KR';
+            utterance.rate = 0.7;
+            window.speechSynthesis.speak(utterance);
+        }
+    } catch (e) {
+        console.error("Ошибка воспроизведения текста:", e);
+    }
+}
+
+function flipCard(cardElement) {
+    cardElement?.classList?.toggle('flipped');
+}
+
+function isDueForReview(wordId) {
+    try {
+        if (!userProgress.knownWords.includes(wordId)) return true;
+        if (!userProgress.cardIntervals?.[wordId]) return true;
+        return Date.now() >= userProgress.cardIntervals[wordId].nextReview;
+    } catch (e) {
+        console.error("Ошибка проверки повторения:", e);
+        return true;
+    }
+}
+
+function updateCardInterval(cardId, response) {
+    try {
+        const intervals = { 'again': 1, 'hard': 3, 'easy': 7 };
+        
+        userProgress.cardIntervals = userProgress.cardIntervals || {};
+        userProgress.cardIntervals[cardId] = {
+            nextReview: Date.now() + intervals[response] * 86400000,
+            interval: intervals[response]
+        };
+    } catch (e) {
+        console.error("Ошибка обновления интервала:", e);
+    }
+}
+
+function showErrorPage() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Произошла ошибка</h3>
+            <p>Попробуйте перезагрузить страницу</p>
+            <button class="card-btn" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i> Перезагрузить
+            </button>
+        </div>
+    `;
+}
+
+// ==================== ЭКСПОРТ ФУНКЦИЙ ====================
 window.showHomePage = showHomePage;
 window.showLevelsPage = showLevelsPage;
 window.showCardsPage = showCardsPage;
@@ -555,4 +699,7 @@ window.flipCard = flipCard;
 window.nextCard = nextCard;
 window.speakWord = speakWord;
 window.speakText = speakText;
+window.saveSettings = saveSettings;
 window.resetProgress = resetProgress;
+window.startLevel = startLevel;
+window.completeLevel = completeLevel;
