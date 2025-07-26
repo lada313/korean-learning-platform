@@ -117,6 +117,27 @@ function updateProgressUI() {
         document.querySelector('.progress-info span:last-child').textContent = `Уровень ${userProgress.currentLevel}`;
     }
 }
+function showProfilePage() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="profile-container">
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h2>Мой профиль</h2>
+                <div class="profile-info">
+                    <p><strong>Уровень:</strong> ${userProgress.currentLevel}</p>
+                    <p><strong>Изучено слов:</strong> ${userProgress.knownWords.length}</p>
+                    <p><strong>Пройдено уроков:</strong> ${userProgress.completedLevels.length}</p>
+                </div>
+                <button class="card-btn" onclick="showHomePage()">
+                    <i class="fas fa-arrow-left"></i> На главную
+                </button>
+            </div>
+        </div>
+    `;
+    updateActiveNav('profile');
+}
 
 // Навигация
 function showHomePage() {
