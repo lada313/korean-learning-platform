@@ -1,0 +1,21 @@
+
+[
+    {
+        "id": 1,
+        "title": "Топонимы",
+        "words": [1, 2, 3],
+        "grammar": []
+    },
+    {
+        "id": 2,
+        "title": "Основные глаголы",
+        "words": [8, 9, 10, 11],
+        "grammar": ["present-tense"]
+    },
+    {
+        "id": 3,
+        "title": "Счётные слова",
+        "words": [5, 7, 18],
+        "grammar": ["counters"]
+    }
+]
