@@ -50,6 +50,70 @@ header {
     height: 6px;
     overflow: hidden;
 }
+/* Стили для модулей */
+.modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.module-card {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-dark);
+}
+
+.module-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.module-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.module-card p {
+    font-size: 0.85rem;
+    color: var(--text-medium);
+}
+
+/* Иконки для модулей */
+.card-icon.levels {
+    background-color: rgba(76, 175, 80, 0.15);
+    color: var(--primary);
+}
+
+.card-icon.cards {
+    background-color: rgba(33, 150, 243, 0.15);
+    color: var(--secondary);
+}
+
+.card-icon.grammar {
+    background-color: rgba(255, 152, 0, 0.15);
+    color: var(--accent);
+}
+
+.card-icon.text {
+    background-color: rgba(156, 39, 176, 0.15);
+    color: #9c27b0;
+}
+
+/* Секция повторения */
+.repetition-section {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    margin-top: 20px;
+    text-align: center;
+}
 
 .progress-bar {
     height: 100%;
