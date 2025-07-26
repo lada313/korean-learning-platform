@@ -9,10 +9,55 @@ let userProgress = {
 
 let allWords = [];
 let allLevels = [];
-let allGrammar = [];
-let allTexts = [];
 let currentCardIndex = 0;
 let flashcards = [];
+
+// Инициализация приложения
+document.addEventListener('DOMContentLoaded', function() {
+    loadUserProgress();
+    loadData().then(() => {
+        showHomePage();
+    });
+});
+
+function showHomePage() {
+    document.getElementById('mainContent').innerHTML = `
+        <div class="modules-grid">
+            <a href="javascript:void(0)" onclick="showLevelsPage()" class="module-card">
+                <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
+                <h2>Уровни</h2>
+                <p>Пошаговое изучение от начального до продвинутого</p>
+            </a>
+
+            <a href="javascript:void(0)" onclick="showCardsPage()" class="module-card">
+                <div class="card-icon cards"><i class="fas fa-flipbook"></i></div>
+                <h2>Карточки</h2>
+                <p>Запоминание слов с интервальным повторением</p>
+            </a>
+
+            <a href="javascript:void(0)" onclick="showGrammarPage()" class="module-card">
+                <div class="card-icon grammar"><i class="fas fa-book-open"></i></div>
+                <h2>Грамматика</h2>
+                <p>Изучение правил и языковых конструкций</p>
+            </a>
+
+            <a href="javascript:void(0)" onclick="showTextsPage()" class="module-card">
+                <div class="card-icon text"><i class="fas fa-align-left"></i></div>
+                <h2>Текст и перевод</h2>
+                <p>Чтение и анализ текстов с переводом</p>
+            </a>
+        </div>
+
+        <div class="repetition-section">
+            <h2>Повторение</h2>
+            <p>Повторяйте изученный материал для закрепления знаний</p>
+            <button class="card-btn" onclick="showCardsPage()">
+                <i class="fas fa-redo"></i> Начать повторение
+            </button>
+        </div>
+    `;
+    updateActiveNav('home');
+}
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
