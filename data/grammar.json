@@ -1,11 +1,10 @@
-
 [
-  {
-    "id": "present-tense",
-    "title": "Настоящее время",
-    "description": "Окончание -아요/어요",
-    "examples": [
-      {"korean": "가다 → 가요", "translation": "идти → иду"}
-    ]
-  }
+    {
+        "id": "present-tense",
+        "title": "Настоящее время",
+        "description": "Окончание -아요/어요",
+        "examples": [
+            {"korean": "가다 → 가요", "translation": "идти → иду"}
+        ]
+    }
 ]
