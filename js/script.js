@@ -299,3 +299,6 @@ async loadData() {
         `;
     }
 }
+if (typeof window !== 'undefined') {
+    window.KoreanLearningApp = KoreanLearningApp;
+}
