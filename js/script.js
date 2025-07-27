@@ -170,52 +170,69 @@ class KoreanLearningApp {
     }
 
     showCardsPage(fromLevel = false) {
-        const words = fromLevel ? this.currentWords : 
-            [...this.allWords].sort(() => 0.5 - Math.random()).slice(0, 10);
+    const words = fromLevel ? this.currentWords : 
+        [...this.allWords].sort(() => 0.5 - Math.random()).slice(0, 10);
 
-        if (words.length === 0) {
-            document.getElementById('defaultContent').innerHTML = `
-                <div class="error-state">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <h3>Нет доступных слов</h3>
-                    <p>Попробуйте выбрать другой уровень</p>
-                </div>
-            `;
-            return;
-        }
-
-        this.currentCardIndex = 0;
-        this.currentSessionWords = [...words];
-        this.wordsToRepeat = [];
-
+    if (words.length === 0) {
         document.getElementById('defaultContent').innerHTML = `
-            <div class="section-title">
-                <h2>Карточки слов</h2>
-                <button class="card-btn" id="exitCardsBtn">
-                    <i class="fas fa-times"></i> Выйти
-                </button>
-            </div>
-            <div class="word-card" id="wordCard">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="word-korean">${words[0].korean}</div>
-                        <div class="word-romanization">${words[0].romanization}</div>
-                    </div>
-                    <div class="card-back">
-                        <div class="word-translation">${words[0].translation}</div>
-                    </div>
-                </div>
-                <div class="card-controls">
-                    <button class="card-btn" id="repeatCardBtn">
-                        <i class="fas fa-redo"></i> Повторить
-                    </button>
-                    <button class="card-btn primary" id="nextCardBtn">
-                        <i class="fas fa-arrow-right"></i> Следующая
-                    </button>
-                </div>
-                <div class="progress">1/${words.length}</div>
+            <div class="error-state">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>Нет доступных слов</h3>
+                <p>Попробуйте выбрать другой уровень</p>
             </div>
         `;
+        return;
+    }
+
+    this.currentCardIndex = 0;
+    this.currentSessionWords = [...words];
+    this.wordsToRepeat = [];
+
+    const currentWord = words[0];
+    const example = currentWord.examples ? currentWord.examples[0] : null;
+
+    document.getElementById('defaultContent').innerHTML = `
+        <div class="section-title">
+            <h2>Карточки слов</h2>
+            <button class="card-btn" id="exitCardsBtn">
+                <i class="fas fa-times"></i> Выйти
+            </button>
+        </div>
+        <div class="word-card" id="wordCard">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="word-header">
+                        <div class="word-korean">${currentWord.korean}</div>
+                        <button class="sound-btn" onclick="app.playSound('${currentWord.korean}')">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                    </div>
+                    <div class="word-romanization">${currentWord.romanization}</div>
+                </div>
+                <div class="card-back">
+                    <div class="word-translation">${currentWord.translation}</div>
+                    ${example ? `
+                    <div class="word-example">
+                        <div class="example-korean">${example.korean}</div>
+                        <div class="example-translation">${example.translation}</div>
+                        <button class="sound-btn" onclick="app.playSound('${example.korean}')">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            <div class="card-controls">
+                <button class="card-btn" id="repeatCardBtn">
+                    <i class="fas fa-redo"></i> Повторить
+                </button>
+                <button class="card-btn primary" id="nextCardBtn">
+                    <i class="fas fa-arrow-right"></i> Следующая
+                </button>
+            </div>
+            <div class="progress">1/${words.length}</div>
+        </div>
+    `;
 
         // Инициализация карточек
         const wordCard = document.getElementById('wordCard');
