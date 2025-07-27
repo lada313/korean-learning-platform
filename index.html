@@ -47,7 +47,12 @@
         </footer>
     </div>
 
-    <script src="js/games.js"></script>
-    <script src="js/script.js"></script>
+<script>
+    // Глобальная переменная для проверки загрузки games.js
+    window.appReady = window.appReady || {};
+    window.appReady.gamesLoaded = false;
+</script>
+<script src="js/games.js" onload="window.appReady.gamesLoaded = true"></script>
+<script src="js/script.js"></script>
 </body>
 </html>
