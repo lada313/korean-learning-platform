@@ -1,4 +1,4 @@
-/* ==================== ОСНОВНЫЕ СТИЛИ ==================== */
+/* Основные стили */
 :root {
     --primary: #4CAF50;
     --primary-dark: #388E3C;
@@ -42,7 +42,7 @@ body {
     padding-bottom: 80px;
 }
 
-/* ==================== ШАПКА ==================== */
+/* Шапка */
 .header {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
@@ -118,7 +118,7 @@ body {
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* ==================== ОСНОВНОЙ КОНТЕНТ ==================== */
+/* Основной контент */
 .main-content {
     margin-top: 20px;
 }
@@ -135,7 +135,7 @@ body {
     color: var(--text-dark);
 }
 
-/* ==================== МОДУЛИ ==================== */
+/* Модули */
 .modules-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -202,7 +202,7 @@ body {
     color: #9c27b0;
 }
 
-/* ==================== КАРТОЧКИ В УРОВНЯХ ==================== */
+/* Карточки в уровнях */
 .levels-container {
     display: grid;
     gap: 15px;
@@ -244,7 +244,7 @@ body {
     border-radius: 3px;
 }
 
-/* ==================== КАРТОЧКИ СЛОВ ==================== */
+/* Карточки слов */
 .word-card {
     position: relative;
     width: 100%;
@@ -301,10 +301,11 @@ body {
 
 .word-korean {
     font-size: 2.5rem;
-    margin-bottom: 10px;
+    margin-bottom: 40px;
     font-weight: bold;
     color: white;
     user-select: none;
+    position: relative;
 }
 
 .word-translation {
@@ -315,7 +316,7 @@ body {
     user-select: none;
 }
 
-/* ==================== КНОПКИ ОЗВУЧИВАНИЯ ==================== */
+/* Кнопки озвучивания */
 .sound-btn {
     background: none;
     border: none;
@@ -323,31 +324,49 @@ body {
     font-size: 1.2rem;
     cursor: pointer;
     padding: 5px;
-    margin-left: 10px;
     -webkit-tap-highlight-color: transparent;
     outline: none;
-    transition: transform 0.2s;
+    transition: all 0.3s;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .card-back .sound-btn {
     color: var(--primary);
+    position: static;
+    transform: none;
+    margin-left: 10px;
+    background-color: transparent;
+    width: auto;
+    height: auto;
 }
 
 .sound-btn:hover {
-    transform: scale(1.1);
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
 .sound-btn:active {
+    transform: translateX(-50%) scale(0.9);
+}
+
+.card-back .sound-btn:hover {
+    color: var(--primary-dark);
+}
+
+.card-back .sound-btn:active {
     transform: scale(0.9);
 }
 
-.word-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* ==================== ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ СЛОВ ==================== */
+/* Примеры использования слов */
 .word-example {
     margin-top: 25px;
     padding: 15px;
@@ -382,7 +401,7 @@ body {
     font-style: italic;
 }
 
-/* ==================== КНОПКИ УПРАВЛЕНИЯ ==================== */
+/* Кнопки управления */
 .card-controls {
     position: relative;
     margin-top: 20px;
@@ -441,7 +460,7 @@ body {
     background: #c62828;
 }
 
-/* ==================== РАЗДЕЛ ПОВТОРЕНИЯ ==================== */
+/* Раздел повторения */
 .repetition-section {
     background-color: var(--card-bg);
     border-radius: 10px;
@@ -461,7 +480,7 @@ body {
     color: var(--text-medium);
 }
 
-/* ==================== ПРОГРЕСС ==================== */
+/* Прогресс */
 .stats-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -489,7 +508,7 @@ body {
     font-size: 0.9rem;
 }
 
-/* ==================== ПРОФИЛЬ ==================== */
+/* Профиль */
 .profile-container {
     display: flex;
     justify-content: center;
@@ -524,7 +543,7 @@ body {
     margin: 10px 0;
 }
 
-/* ==================== НАСТРОЙКИ ==================== */
+/* Настройки */
 .settings-container {
     max-width: 500px;
     margin: 0 auto;
@@ -590,7 +609,7 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
-/* ==================== СООБЩЕНИЯ ОБ ОШИБКАХ ==================== */
+/* Сообщения об ошибках */
 .error-state, .empty-state {
     text-align: center;
     padding: 30px;
@@ -615,7 +634,7 @@ input:checked + .slider:before {
     color: var(--text-dark);
 }
 
-/* ==================== НИЖНЕЕ МЕНЮ ==================== */
+/* Нижнее меню */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -665,18 +684,26 @@ input:checked + .slider:before {
     color: var(--primary);
 }
 
-/* ==================== АДАПТИВНОСТЬ ==================== */
+/* Адаптивность */
 @media (max-width: 600px) {
     .word-card {
-        height: 300px;
+        height: 320px;
     }
     
     .word-korean {
         font-size: 2rem;
+        margin-bottom: 30px;
     }
     
     .word-translation {
         font-size: 1.5rem;
+    }
+    
+    .sound-btn {
+        font-size: 1rem;
+        bottom: 15px;
+        width: 36px;
+        height: 36px;
     }
     
     .card-btn {
@@ -701,6 +728,7 @@ input:checked + .slider:before {
     }
 }
 
+/* Вспомогательные стили */
 #selected-area {
     position: absolute;
     background-color: rgba(255, 255, 0, 0.3);
