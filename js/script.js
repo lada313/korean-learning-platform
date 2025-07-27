@@ -1,4 +1,13 @@
 class KoreanLearningApp {
+    playSound(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        speechSynthesis.speak(utterance);
+    } else {
+        alert('Ваш браузер не поддерживает синтез речи');
+    }
+}
     constructor() {
         this.userProgress = {
             knownWords: [],
