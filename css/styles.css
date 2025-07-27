@@ -34,6 +34,13 @@ body {
     padding-bottom: 70px;
 }
 
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 15px;
+    padding-bottom: 80px;
+}
+
 /* ==================== ШАПКА ==================== */
 .header {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -100,7 +107,6 @@ body {
     background-color: white;
     border-radius: 6px;
     transition: width 0.3s ease;
-    width: 0%;
 }
 
 .progress-info {
@@ -112,13 +118,6 @@ body {
 }
 
 /* ==================== ОСНОВНОЙ КОНТЕНТ ==================== */
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 15px;
-    padding-bottom: 80px;
-}
-
 .main-content {
     margin-top: 20px;
 }
@@ -245,8 +244,18 @@ body {
     width: 100%;
     max-width: 500px;
     height: 350px;
-    margin: 0 auto 20px;
+    margin: 20px auto;
     perspective: 1000px;
+    cursor: pointer;
+}
+
+.word-card .card-controls {
+    position: relative;
+    z-index: 2;
+}
+
+.word-card.flipped .card-inner {
+    transform: rotateY(180deg);
 }
 
 .card-inner {
@@ -257,10 +266,6 @@ body {
     transform-style: preserve-3d;
     box-shadow: var(--shadow);
     border-radius: 15px;
-}
-
-.word-card.flipped .card-inner {
-    transform: rotateY(180deg);
 }
 
 .card-front, .card-back {
@@ -307,23 +312,6 @@ body {
     color: rgba(255, 255, 255, 0.9);
     margin-bottom: 15px;
     font-size: 1.1rem;
-}
-
-.example-container {
-    display: flex;
-    align-items: center;
-    margin: 10px 0;
-    padding: 10px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 8px;
-    width: 90%;
-}
-
-.example-korean {
-    font-size: 1.2rem;
-    flex-grow: 1;
-    margin-right: 10px;
-    text-align: left;
 }
 
 /* ==================== КНОПКИ ==================== */
