@@ -164,88 +164,70 @@ class KoreanLearningApp {
         }
     }
 
-    showCardsPage(fromLevel = false) {
-        const words = fromLevel ? this.currentWords : 
-            [...this.allWords].sort(() => 0.5 - Math.random()).slice(0, 10);
+showCardsPage(fromLevel = false) {
+    const words = fromLevel ? this.currentWords : 
+        [...this.allWords].sort(() => 0.5 - Math.random()).slice(0, 10);
 
-        if (words.length === 0) {
-            document.getElementById('defaultContent').innerHTML = `
-                <div class="error-state">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <h3>Нет доступных слов</h3>
-                    <p>Попробуйте выбрать другой уровень</p>
-                </div>
-            `;
-            return;
-        }
-
-        this.currentCardIndex = 0;
-        this.currentSessionWords = [...words];
-        this.wordsToRepeat = [];
-
+    if (words.length === 0) {
         document.getElementById('defaultContent').innerHTML = `
-            <div class="section-title">
-                <h2>Карточки слов</h2>
-                <button class="card-btn" id="exitCardsBtn">
-                    <i class="fas fa-times"></i> Выйти
-                </button>
-            </div>
-            <div class="word-card" id="wordCard">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="word-korean">${words[0].korean}</div>
-                        <div class="word-romanization">${words[0].romanization}</div>
-                    </div>
-                    <div class="card-back">
-                        <div class="word-translation">${words[0].translation}</div>
-                    </div>
-                </div>
-                <div class="card-controls">
-                    <button class="card-btn" id="repeatCardBtn">
-                        <i class="fas fa-redo"></i> Повторить
-                    </button>
-                    <button class="card-btn primary" id="nextCardBtn">
-                        <i class="fas fa-arrow-right"></i> Следующая
-                    </button>
-                </div>
-                <div class="progress">1/${words.length}</div>
+            <div class="error-state">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>Нет доступных слов</h3>
+                <p>Попробуйте выбрать другой уровень</p>
             </div>
         `;
+        return;
+    }
+
+    this.currentCardIndex = 0;
+    this.currentSessionWords = [...words];
+    this.wordsToRepeat = [];
+
+    document.getElementById('defaultContent').innerHTML = `
+        <div class="section-title">
+            <h2>Карточки слов</h2>
+            <button class="card-btn" id="exitCardsBtn">
+                <i class="fas fa-times"></i> Выйти
+            </button>
+        </div>
+        <div class="word-card" id="wordCard">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div class="word-korean">${words[0].korean}</div>
+                    <div class="word-romanization">${words[0].romanization}</div>
+                </div>
+                <div class="card-back">
+                    <div class="word-translation">${words[0].translation}</div>
+                </div>
+            </div>
+            <div class="card-controls">
+                <button class="card-btn" id="repeatCardBtn">
+                    <i class="fas fa-redo"></i> Повторить
+                </button>
+                <button class="card-btn primary" id="nextCardBtn">
+                    <i class="fas fa-arrow-right"></i> Следующая
+                </button>
+            </div>
+            <div class="progress">1/${words.length}</div>
+        </div>
+    `;
 
         // Инициализация карточек
-        const wordCard = document.getElementById('wordCard');
-        const nextBtn = document.getElementById('nextCardBtn');
-        const repeatBtn = document.getElementById('repeatCardBtn');
-        const exitBtn = document.getElementById('exitCardsBtn');
+    const wordCard = document.getElementById('wordCard');
+    const nextBtn = document.getElementById('nextCardBtn');
+    const repeatBtn = document.getElementById('repeatCardBtn');
+    const exitBtn = document.getElementById('exitCardsBtn');
+
 
         // Клик по карточке для переворота
         wordCard.addEventListener('click', (e) => {
-            if (e.target.closest('.card-controls')) return;
-            wordCard.classList.toggle('flipped');
-        });
+        // Игнорируем клики по кнопкам управления
+        if (e.target.closest('.card-controls')) return;
+        wordCard.classList.toggle('flipped');
+    });
 
         // Кнопка следующей карточки
         nextBtn.addEventListener('click', () => {
-            this.handleNextCard(wordCard);
-        });
-
-        // Кнопка повтора
-        repeatBtn.addEventListener('click', () => {
-            const currentWord = this.currentSessionWords[this.currentCardIndex];
-            this.wordsToRepeat.push(currentWord);
-            wordCard.classList.remove('flipped');
-            this.handleNextCard(wordCard);
-        });
-
-        // Кнопка выхода
-        exitBtn.addEventListener('click', () => {
-            this.showLevelsPage();
-        });
-
-        this.updateNavActiveState('cards');
-    }
-
-    handleNextCard(wordCard) {
         this.currentCardIndex++;
         
         if (this.currentCardIndex < this.currentSessionWords.length) {
@@ -264,7 +246,40 @@ class KoreanLearningApp {
             // Завершение сессии
             this.showLevelsPage();
         }
-    }
+    });
+
+        // Кнопка повтора
+        repeatBtn.addEventListener('click', () => {
+        const currentWord = this.currentSessionWords[this.currentCardIndex];
+        this.wordsToRepeat.push(currentWord);
+        wordCard.classList.remove('flipped');
+    });
+
+        // Кнопка выхода
+            exitBtn.addEventListener('click', () => {
+        this.showLevelsPage();
+    });
+
+    this.updateNavActiveState('cards');
+}
+
+updateCard(word) {
+    const wordCard = document.getElementById('wordCard');
+    const front = wordCard.querySelector('.card-front');
+    const back = wordCard.querySelector('.card-back');
+    const progress = wordCard.querySelector('.progress');
+    
+    front.innerHTML = `
+        <div class="word-korean">${word.korean}</div>
+        <div class="word-romanization">${word.romanization}</div>
+    `;
+    
+    back.innerHTML = `
+        <div class="word-translation">${word.translation}</div>
+    `;
+    
+    progress.textContent = `${this.currentCardIndex + 1}/${this.currentSessionWords.length}`;
+}
 
     updateCard(word) {
         const wordCard = document.getElementById('wordCard');
