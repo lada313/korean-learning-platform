@@ -1,20 +1,19 @@
-const CACHE_NAME = 'korean-platform-v4';
+const CACHE_NAME = 'korean-platform-v5';
 const urlsToCache = [
   './',
   './index.html',
   './styles.css',
   './script.js',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
   './data/words.json',
-  './data/levels.json'
+  './data/levels.json',
+  './data/grammar.json',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
         return cache.addAll(urlsToCache.map(url => new Request(url, {cache: 'reload'})));
       })
       .catch(err => {
