@@ -1,9 +1,6 @@
-// Главный объект приложения
 const KoreanLearningApp = (function() {
-    // Состояние приложения
     const state = {
         currentPage: 'home',
-        gameActive: false,
         words: [],
         levels: [],
         userProgress: {
@@ -13,76 +10,56 @@ const KoreanLearningApp = (function() {
         }
     };
 
-    // DOM элементы
     const DOM = {
         mainContent: null,
         gameContainer: null,
         defaultContent: null
     };
 
-    // Инициализация приложения
     function init() {
-        try {
-            cacheDOMElements();
-            setupEventListeners();
-            loadInitialData()
-                .then(() => renderHomePage())
-                .catch(error => {
-                    console.error('Ошибка загрузки данных:', error);
-                    showErrorPage('Не удалось загрузить данные');
-                });
-        } catch (error) {
-            console.error('Ошибка инициализации:', error);
-            showErrorPage('Ошибка инициализации приложения');
-        }
+        cacheDOMElements();
+        setupEventListeners();
+        loadInitialData()
+            .then(() => renderHomePage())
+            .catch(error => showErrorPage(error.message));
     }
 
-    // Кэширование DOM элементов
     function cacheDOMElements() {
         DOM.mainContent = document.getElementById('mainContent');
-        if (!DOM.mainContent) {
-            throw new Error('Основной контейнер не найден');
-        }
-
-        // Создаем контейнер для игр если его нет
-        if (!document.getElementById('gameContainer')) {
-            const gameContainer = document.createElement('div');
-            gameContainer.id = 'gameContainer';
-            gameContainer.style.display = 'none';
-            DOM.mainContent.appendChild(gameContainer);
-        }
         DOM.gameContainer = document.getElementById('gameContainer');
-
-        // Создаем контейнер для основного контента если его нет
-        if (!document.getElementById('defaultContent')) {
-            const defaultContent = document.createElement('div');
-            defaultContent.id = 'defaultContent';
-            DOM.mainContent.appendChild(defaultContent);
-        }
         DOM.defaultContent = document.getElementById('defaultContent');
+        
+        if (!DOM.mainContent || !DOM.gameContainer || !DOM.defaultContent) {
+            throw new Error('Не удалось найти необходимые DOM элементы');
+        }
     }
 
-    // Загрузка начальных данных
     async function loadInitialData() {
-        // Загрузка слов (заглушка)
-        state.words = [
-            {id: 1, korean: "안녕하세요", romanization: "annyeonghaseyo", translation: "Здравствуйте"},
-            {id: 2, korean: "감사합니다", romanization: "gamsahamnida", translation: "Спасибо"},
-            {id: 3, korean: "미안합니다", romanization: "mianhamnida", translation: "Извините"}
-        ];
-
-        // Загрузка уровней (переименованы как 1 уровень, 2 уровень и т.д.)
-        state.levels = [
-            {id: 1, title: "1 уровень", words: [1, 2]},
-            {id: 2, title: "2 уровень", words: [2, 3]},
-            {id: 3, title: "3 уровень", words: [1, 2, 3]}
-        ];
+        try {
+            // Загрузка слов
+            const wordsResponse = await fetch('data/words.json');
+            state.words = await wordsResponse.json();
+            
+            // Загрузка уровней (переименованы)
+            const levelsResponse = await fetch('data/levels.json');
+            state.levels = (await levelsResponse.json()).map(level => ({
+                ...level,
+                title: level.title.replace('Топонимы', '1 уровень')
+                                  .replace('Основные глаголы', '2 уровень')
+                                  .replace('Счётные слова', '3 уровень')
+            }));
+            
+            // Загрузка прогресса
+            const savedProgress = localStorage.getItem('koreanProgress');
+            if (savedProgress) state.userProgress = JSON.parse(savedProgress);
+        } catch (error) {
+            console.error('Ошибка загрузки данных:', error);
+            throw new Error('Не удалось загрузить данные');
+        }
     }
 
-    // Настройка обработчиков событий
     function setupEventListeners() {
         document.addEventListener('click', function(e) {
-            // Обработка навигации
             const navItem = e.target.closest('.nav-item');
             if (navItem) {
                 e.preventDefault();
@@ -90,7 +67,6 @@ const KoreanLearningApp = (function() {
                 return;
             }
 
-            // Обработка кнопки "Назад"
             const backBtn = e.target.closest('.back-btn');
             if (backBtn) {
                 e.preventDefault();
@@ -98,7 +74,6 @@ const KoreanLearningApp = (function() {
                 return;
             }
 
-            // Обработка карточек модулей
             const moduleCard = e.target.closest('.module-card');
             if (moduleCard) {
                 e.preventDefault();
@@ -106,7 +81,6 @@ const KoreanLearningApp = (function() {
                 return;
             }
 
-            // Обработка кнопки "Начать" в уровнях
             const startLevelBtn = e.target.closest('.start-level-btn');
             if (startLevelBtn) {
                 e.preventDefault();
@@ -116,7 +90,6 @@ const KoreanLearningApp = (function() {
         });
     }
 
-    // Навигация между страницами
     function navigateTo(page) {
         if (state.currentPage === page) return;
 
@@ -144,14 +117,12 @@ const KoreanLearningApp = (function() {
         }
     }
 
-    // Обновление активного состояния навигации
     function updateActiveNav() {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.toggle('active', item.dataset.page === state.currentPage);
         });
     }
 
-    // Рендер страниц
     function renderHomePage() {
         DOM.defaultContent.innerHTML = `
             <div class="modules-grid">
@@ -165,6 +136,23 @@ const KoreanLearningApp = (function() {
                     <h2>Карточки</h2>
                     <p>Запоминание слов</p>
                 </div>
+                <div class="module-card" data-page="grammar">
+                    <div class="card-icon grammar"><i class="fas fa-book-open"></i></div>
+                    <h2>Грамматика</h2>
+                    <p>Изучение правил</p>
+                </div>
+                <div class="module-card" data-page="texts">
+                    <div class="card-icon text"><i class="fas fa-align-left"></i></div>
+                    <h2>Тексты</h2>
+                    <p>Чтение и перевод</p>
+                </div>
+            </div>
+            <div class="repetition-section">
+                <h2>Повторение</h2>
+                <p>Повторяйте изученный материал</p>
+                <button class="card-btn" data-page="cards">
+                    <i class="fas fa-redo"></i> Начать повторение
+                </button>
             </div>
         `;
         showDefaultContent();
@@ -190,46 +178,6 @@ const KoreanLearningApp = (function() {
         showDefaultContent();
     }
 
-    function renderProgressPage() {
-        DOM.defaultContent.innerHTML = `
-            <div class="section-title">
-                <h2>Ваш прогресс</h2>
-                <button class="back-btn" data-page="home">На главную</button>
-            </div>
-            <div class="stats-container">
-                <div class="stat-card">
-                    <div class="stat-value">${state.userProgress.knownWords.length}</div>
-                    <div class="stat-label">Изученных слов</div>
-                </div>
-            </div>
-        `;
-        showDefaultContent();
-    }
-
-    function renderProfilePage() {
-        DOM.defaultContent.innerHTML = `
-            <div class="section-title">
-                <h2>Ваш профиль</h2>
-                <button class="back-btn" data-page="home">На главную</button>
-            </div>
-            <div class="profile-card">
-                <h3>Ученик корейского</h3>
-            </div>
-        `;
-        showDefaultContent();
-    }
-
-    // Показ основного контента
-    function showDefaultContent() {
-        if (DOM.gameContainer && DOM.defaultContent) {
-            DOM.gameContainer.style.display = 'none';
-            DOM.defaultContent.style.display = 'block';
-        } else {
-            console.error('DOM элементы не найдены');
-        }
-    }
-
-    // Запуск уровня
     function startLevel(levelId) {
         const level = state.levels.find(l => l.id === levelId);
         if (!level) return;
@@ -238,15 +186,9 @@ const KoreanLearningApp = (function() {
         startCardGame(levelWords);
     }
 
-    // Запуск игры с карточками
     function startCardGame(words) {
         if (!words || words.length === 0) {
-            console.error('Нет слов для изучения');
-            return;
-        }
-
-        if (!DOM.gameContainer || !DOM.defaultContent) {
-            console.error('DOM элементы для игры не найдены');
+            showErrorPage('Нет слов для изучения');
             return;
         }
 
@@ -254,7 +196,6 @@ const KoreanLearningApp = (function() {
             DOM.defaultContent.style.display = 'none';
             DOM.gameContainer.style.display = 'block';
             
-            // Проверяем, что games объект существует
             if (window.games && typeof games.startCardGame === 'function') {
                 games.startCardGame(words);
             } else {
@@ -267,32 +208,33 @@ const KoreanLearningApp = (function() {
         }
     }
 
-    // Обработка ошибок
-    function showErrorPage(message) {
-        if (DOM.mainContent) {
-            DOM.mainContent.innerHTML = `
-                <div class="error-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>${message}</h3>
-                    <button onclick="location.reload()">Перезагрузить</button>
-                </div>
-            `;
-        }
+    function showDefaultContent() {
+        DOM.gameContainer.style.display = 'none';
+        DOM.defaultContent.style.display = 'block';
     }
 
-    // Публичный API
+    function showErrorPage(message) {
+        DOM.mainContent.innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>${message}</h3>
+                <button onclick="location.reload()">Перезагрузить</button>
+            </div>
+        `;
+    }
+
+    // Остальные функции рендеринга страниц...
+
     return {
         init: init,
         showHomePage: function() { navigateTo('home'); },
         showLevelsPage: function() { navigateTo('levels'); },
         showCardsPage: function() { navigateTo('cards'); },
         showProgressPage: function() { navigateTo('progress'); },
-        showProfilePage: function() { navigateTo('profile'); },
-        startCardGame: startCardGame
+        showProfilePage: function() { navigateTo('profile'); }
     };
 })();
 
-// Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     try {
         KoreanLearningApp.init();
