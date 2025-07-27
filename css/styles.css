@@ -25,6 +25,7 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -151,6 +152,8 @@ body {
     cursor: pointer;
     text-decoration: none;
     color: var(--text-dark);
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
 }
 
 .module-card:hover {
@@ -213,6 +216,8 @@ body {
     box-shadow: var(--shadow);
     cursor: pointer;
     transition: all 0.3s;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
 }
 
 .level-card:hover {
@@ -247,16 +252,20 @@ body {
     height: 350px;
     margin: 20px auto;
     perspective: 1000px;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
 }
 
 .word-card .card-inner {
     position: relative;
     width: 100%;
-    height: calc(100% - 60px); /* Учитываем место для кнопок */
+    height: calc(100% - 60px);
     transition: transform 0.6s;
     transform-style: preserve-3d;
     box-shadow: var(--shadow);
     border-radius: 15px;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
 }
 
 .word-card.flipped .card-inner {
@@ -275,6 +284,8 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
 }
 
 .card-front {
@@ -293,6 +304,7 @@ body {
     margin-bottom: 10px;
     font-weight: bold;
     color: white;
+    user-select: none;
 }
 
 .word-translation {
@@ -300,6 +312,7 @@ body {
     margin-bottom: 20px;
     color: var(--primary-dark);
     font-weight: bold;
+    user-select: none;
 }
 
 .word-romanization {
@@ -307,6 +320,7 @@ body {
     color: rgba(255, 255, 255, 0.9);
     margin-bottom: 15px;
     font-size: 1.1rem;
+    user-select: none;
 }
 
 /* ==================== КНОПКИ ==================== */
@@ -316,7 +330,8 @@ body {
     display: flex;
     justify-content: center;
     gap: 15px;
-    z-index: 1; /* Убедимся, что кнопки над карточкой */
+    z-index: 1;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .card-btn {
@@ -331,6 +346,9 @@ body {
     align-items: center;
     gap: 8px;
     transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    user-select: none;
 }
 
 .card-btn:hover {
@@ -341,6 +359,11 @@ body {
 
 .card-btn:active {
     transform: translateY(1px);
+}
+
+.card-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
 }
 
 .card-btn.primary {
@@ -478,6 +501,7 @@ body {
     bottom: 0;
     background-color: #ccc;
     transition: .4s;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .slider:before {
@@ -556,6 +580,7 @@ input:checked + .slider:before {
     padding: 5px 10px;
     border-radius: 8px;
     transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .nav-item.active {
