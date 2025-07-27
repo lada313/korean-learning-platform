@@ -271,6 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
     KoreanLearningApp.init();
 });
 
+window.KoreanApp = KoreanLearningApp;
+
 // Глобальный экспорт функций для нижнего меню
 window.showHomePage = () => KoreanLearningApp.showHomePage();
 window.showLevelsPage = () => KoreanLearningApp.showLevelsPage();
