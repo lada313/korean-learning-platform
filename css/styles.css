@@ -316,35 +316,88 @@ body {
 }
 
 /* ==================== КНОПКИ ОЗВУЧИВАНИЯ ==================== */
+:root {
+    --fa-style-family-brands: "Font Awesome 6 Brands";
+    --fa-font-brands: normal 400 1em/1 "Font Awesome 6 Brands";
+    --fa-font-regular: normal 400 1em/1 "Font Awesome 6 Free";
+    --fa-style-family-classic: "Font Awesome 6 Free";
+    --fa-font-solid: normal 900 1em/1 "Font Awesome 6 Free";
+    --primary: #4CAF50;
+    --primary-dark: #388E3C;
+    --secondary: #2196F3;
+    --secondary-dark: #1976D2;
+    --accent: #FF9800;
+    --accent-dark: #F57C00;
+    --background: #f5f7fa;
+    --card-bg: #ffffff;
+    --text-dark: #333333;
+    --text-medium: #666666;
+    --text-light: #888888;
+    --border: #e0e0e0;
+    --success: #4CAF50;
+    --warning: #FF9800;
+    --error: #F44336;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
 .sound-btn {
-    background: none;
-    border: none;
+    /* Размеры и позиционирование */
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    /* Стили оформления */
     color: white;
-    font-size: 1.2rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
     cursor: pointer;
-    padding: 5px;
-    margin-left: 10px;
-    -webkit-tap-highlight-color: transparent;
-    outline: none;
-    transition: transform 0.2s;
-}
-
-.card-back .sound-btn {
-    color: var(--primary);
-}
-
-.sound-btn:hover {
-    transform: scale(1.1);
-}
-
-.sound-btn:active {
-    transform: scale(0.9);
-}
-
-.word-header {
+    
+    /* Выравнивание иконки */
     display: flex;
     align-items: center;
     justify-content: center;
+    
+    /* Анимация */
+    transition: all 0.3s ease;
+    
+    /* Шрифт */
+    font-family: var(--fa-style-family-classic);
+    font-weight: 900;
+    font-size: 1.2rem;
+}
+
+.sound-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-50%) scale(1.1);
+}
+
+.sound-btn:active {
+    transform: translateX(-50%) scale(0.9);
+}
+
+/* Стиль для обратной стороны карточки */
+.card-back .sound-btn {
+    position: static;
+    transform: none;
+    margin-left: 10px;
+    color: var(--primary);
+    background: transparent;
+    width: auto;
+    height: auto;
+    display: inline-flex;
+}
+
+.card-back .sound-btn:hover {
+    color: var(--primary-dark);
+    transform: scale(1.1);
+}
+
+.card-back .sound-btn:active {
+    transform: scale(0.9);
 }
 
 /* ==================== ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ СЛОВ ==================== */
