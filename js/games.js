@@ -8,11 +8,14 @@ const games = {
         document.getElementById('gameContainer').innerHTML = this.currentGame.renderCard();
         
         const wordCard = document.getElementById('wordCard');
+        
+        // Клик по карточке для переворота
         wordCard.addEventListener('click', (e) => {
-            if (e.target.closest('.card-controls')) return;
+            if (e.target.closest('.card-controls') || e.target.closest('.sound-btn')) return;
             wordCard.classList.toggle('flipped');
         });
         
+        // Кнопки управления
         document.getElementById('nextCardBtn').addEventListener('click', () => {
             this.currentGame.nextCard();
         });
@@ -27,42 +30,37 @@ const games = {
             window.app.showLevelsPage();
         });
 
+        // Инициализация свайпов
         this.setupSwipeEvents(wordCard);
     },
 
     setupSwipeEvents(element) {
-        let xDown = null;
-        let yDown = null;
+        let touchStartX = 0;
+        let touchEndX = 0;
 
-        const handleTouchStart = (evt) => {
-            xDown = evt.touches[0].clientX;
-            yDown = evt.touches[0].clientY;
-        };
+        element.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].clientX;
+        }, { passive: true });
 
-        const handleTouchMove = (evt) => {
-            if (!xDown || !yDown) return;
-            
-            let xUp = evt.touches[0].clientX;
-            let yUp = evt.touches[0].clientY;
-            
-            let xDiff = xDown - xUp;
-            let yDiff = yDown - yUp;
-            
-            if (Math.abs(xDiff) > Math.abs(yDiff)) {
-                if (Math.abs(xDiff) > 50) {
-                    if (xDiff > 0) {
-                        document.getElementById('nextCardBtn').click();
-                    } else {
-                        document.getElementById('repeatCardBtn').click();
-                    }
+        element.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].clientX;
+            this.handleSwipe();
+        }, { passive: true });
+
+        this.handleSwipe = () => {
+            const threshold = 50; // Минимальное расстояние свайпа
+            const swipeDistance = touchEndX - touchStartX;
+
+            if (Math.abs(swipeDistance) > threshold) {
+                if (swipeDistance > 0) {
+                    // Свайп вправо - повторить
+                    document.getElementById('repeatCardBtn').click();
+                } else {
+                    // Свайп влево - следующая карточка
+                    document.getElementById('nextCardBtn').click();
                 }
             }
-            xDown = null;
-            yDown = null;
         };
-
-        element.addEventListener('touchstart', handleTouchStart, false);
-        element.addEventListener('touchmove', handleTouchMove, false);
     }
 };
 
@@ -90,8 +88,8 @@ class WordCardsGame {
                 </div>
                 <div class="card-inner">
                     <div class="card-front">
-                        <div class="word-header">
-                            <div class="word-korean">${word.korean}</div>
+                        <div class="word-korean">${word.korean}</div>
+                        <div class="sound-btn-container">
                             <button class="sound-btn" onclick="app.playSound(event, '${word.korean}')">
                                 <i class="fas fa-volume-up"></i>
                             </button>
