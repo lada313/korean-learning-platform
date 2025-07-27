@@ -579,6 +579,61 @@ body {
 .test-option:hover {
     border-color: var(--primary);
 }
+/* Стили для игр */
+.game-card, .match-game {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.card-word {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: #4CAF50;
+}
+
+.card-romanization {
+  font-style: italic;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.word-to-match {
+  font-size: 2rem;
+  margin: 20px 0;
+  color: #2196F3;
+  font-weight: bold;
+}
+
+.options-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.option-btn {
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.option-btn:hover {
+  border-color: #2196F3;
+  transform: translateY(-2px);
+}
+
+.progress {
+  margin-top: 20px;
+  color: #666;
+}
 /* ==================== ПРОФИЛЬ ==================== */
 .profile-container {
     display: flex;
