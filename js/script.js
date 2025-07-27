@@ -205,7 +205,6 @@ class KoreanLearningApp {
             utterance.lang = 'ko-KR';
             this.synth.speak(utterance);
             
-            // Анимация кнопки звука
             const soundBtn = event.target.closest('.sound-btn');
             if (soundBtn) {
                 soundBtn.classList.add('playing');
