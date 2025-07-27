@@ -315,89 +315,88 @@ body {
     user-select: none;
 }
 
-/* ==================== КНОПКИ ОЗВУЧИВАНИЯ ==================== */
-:root {
-    --fa-style-family-brands: "Font Awesome 6 Brands";
-    --fa-font-brands: normal 400 1em/1 "Font Awesome 6 Brands";
-    --fa-font-regular: normal 400 1em/1 "Font Awesome 6 Free";
-    --fa-style-family-classic: "Font Awesome 6 Free";
-    --fa-font-solid: normal 900 1em/1 "Font Awesome 6 Free";
-    --primary: #4CAF50;
-    --primary-dark: #388E3C;
-    --secondary: #2196F3;
-    --secondary-dark: #1976D2;
-    --accent: #FF9800;
-    --accent-dark: #F57C00;
-    --background: #f5f7fa;
-    --card-bg: #ffffff;
-    --text-dark: #333333;
-    --text-medium: #666666;
-    --text-light: #888888;
-    --border: #e0e0e0;
-    --success: #4CAF50;
-    --warning: #FF9800;
-    --error: #F44336;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
+/* ==================== КНОПКИ ОЗВУЧИВАНИЯ (ОБНОВЛЕННЫЕ) ==================== */
 .sound-btn {
-    /* Размеры и позиционирование */
-    width: 40px;
-    height: 40px;
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    
-    /* Стили оформления */
-    color: white;
-    background: rgba(255, 255, 255, 0.2);
+    background: none;
     border: none;
-    border-radius: 50%;
+    color: white;
+    font-size: 1rem;
     cursor: pointer;
-    
-    /* Выравнивание иконки */
+    padding: 8px;
+    margin-left: 10px;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    transition: all 0.3s;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    
-    /* Анимация */
-    transition: all 0.3s ease;
-    
-    /* Шрифт */
-    font-family: var(--fa-style-family-classic);
-    font-weight: 900;
-    font-size: 1.2rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.card-back .sound-btn {
+    color: var(--primary);
+    background-color: rgba(76, 175, 80, 0.1);
 }
 
 .sound-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateX(-50%) scale(1.1);
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
 }
 
 .sound-btn:active {
-    transform: translateX(-50%) scale(0.9);
+    transform: scale(0.95);
 }
 
-/* Стиль для обратной стороны карточки */
-.card-back .sound-btn {
-    position: static;
-    transform: none;
-    margin-left: 10px;
-    color: var(--primary);
-    background: transparent;
-    width: auto;
-    height: auto;
-    display: inline-flex;
+.sound-btn.playing::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    animation: soundWave 0.8s ease-out;
 }
 
-.card-back .sound-btn:hover {
-    color: var(--primary-dark);
-    transform: scale(1.1);
+@keyframes soundWave {
+    0% {
+        transform: scale(0.8);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
 }
 
-.card-back .sound-btn:active {
-    transform: scale(0.9);
+.word-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==================== СВАЙП ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ==================== */
+@media (max-width: 600px) {
+    .word-card {
+        touch-action: pan-y;
+    }
+    
+    .swipe-hint {
+        position: absolute;
+        bottom: 70px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: var(--text-light);
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
 }
 
 /* ==================== ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ СЛОВ ==================== */
