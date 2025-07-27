@@ -1,20 +1,19 @@
-
 [
     {
         "id": 1,
-        "title": "Топонимы",
+        "title": "1 уровень",
         "words": [1, 2, 3],
         "grammar": []
     },
     {
         "id": 2,
-        "title": "Основные глаголы",
+        "title": "2 уровень",
         "words": [8, 9, 10, 11],
         "grammar": ["present-tense"]
     },
     {
         "id": 3,
-        "title": "Счётные слова",
+        "title": "3 уровень",
         "words": [5, 7, 18],
         "grammar": ["counters"]
     }
