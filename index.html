@@ -12,111 +12,38 @@
     <div class="container">
         <header class="header">
             <div class="header-content">
-                <div class="logo-container">
-                    <div class="logo">
-                        <i class="fas fa-language"></i>
-                        <span>KoreanMaster</span>
-                    </div>
+                <div class="logo">
+                    <i class="fas fa-language"></i>
+                    <span>KoreanMaster</span>
                 </div>
                 <div class="profile-icon" onclick="KoreanLearningApp.showProfilePage()">
                     <i class="fas fa-user"></i>
                 </div>
             </div>
-            <div class="progress-container">
-                <div class="progress-bar"></div>
-            </div>
-            <div class="progress-info">
-                <span>0% завершено</span>
-                <span>Уровень 1</span>
-            </div>
         </header>
 
-        <main id="mainContent" class="main-content">
+        <main id="mainContent">
             <div id="gameContainer" style="display: none;"></div>
-            
-            <div id="defaultContent" style="display: block;">
-                <div class="modules-grid">
-                    <div class="module-card" onclick="KoreanLearningApp.showLevelsPage()">
-                        <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
-                        <h2>Уровни</h2>
-                        <p>Пошаговое изучение</p>
-                    </div>
-                    <div class="module-card" onclick="KoreanLearningApp.showCardsPage()">
-                        <div class="card-icon cards"><i class="far fa-sticky-note"></i></div>
-                        <h2>Карточки</h2>
-                        <p>Запоминание слов</p>
-                    </div>
-                    <div class="module-card" onclick="KoreanLearningApp.showGrammarPage()">
-                        <div class="card-icon grammar"><i class="fas fa-book-open"></i></div>
-                        <h2>Грамматика</h2>
-                        <p>Изучение правил</p>
-                    </div>
-                    <div class="module-card" onclick="KoreanLearningApp.showTextsPage()">
-                        <div class="card-icon text"><i class="fas fa-align-left"></i></div>
-                        <h2>Тексты</h2>
-                        <p>Чтение и перевод</p>
-                    </div>
-                </div>
-
-                <div class="repetition-section">
-                    <h2>Повторение</h2>
-                    <p>Повторяйте изученный материал</p>
-                    <button class="card-btn" onclick="KoreanLearningApp.showCardsPage()">
-                        <i class="fas fa-redo"></i> Начать повторение
-                    </button>
-                </div>
-            </div>
+            <div id="defaultContent"></div>
         </main>
 
         <footer class="bottom-nav">
-            <div class="nav-item active" onclick="KoreanLearningApp.showHomePage()">
+            <div class="nav-item active" data-page="home">
                 <i class="fas fa-home"></i>
                 <span>Главная</span>
             </div>
-            <div class="nav-item" onclick="KoreanLearningApp.showProgressPage()">
+            <div class="nav-item" data-page="progress">
                 <i class="fas fa-chart-line"></i>
                 <span>Прогресс</span>
             </div>
-            <div class="nav-item" onclick="KoreanLearningApp.showProfilePage()">
+            <div class="nav-item" data-page="profile">
                 <i class="fas fa-user"></i>
                 <span>Профиль</span>
-            </div>
-            <div class="nav-item" onclick="KoreanLearningApp.showSettingsPage()">
-                <i class="fas fa-cog"></i>
-                <span>Настройки</span>
             </div>
         </footer>
     </div>
 
     <script src="js/script.js"></script>
     <script src="js/games.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof(Storage) === "undefined") {
-                document.getElementById('mainContent').innerHTML = `
-                    <div class="error-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Ошибка браузера</h3>
-                        <p>Ваш браузер не поддерживает необходимые технологии</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            KoreanLearningApp.init();
-        });
-
-        function exitGame() {
-            document.getElementById('gameContainer').style.display = 'none';
-            document.getElementById('defaultContent').style.display = 'block';
-        }
-
-        function startCardGame(words) {
-            document.getElementById('defaultContent').style.display = 'none';
-            document.getElementById('gameContainer').style.display = 'block';
-            games.startCardGame(words);
-        }
-    </script>
 </body>
 </html>
