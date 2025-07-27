@@ -18,7 +18,7 @@
                         <span>KoreanMaster</span>
                     </div>
                 </div>
-                <div class="profile-icon" onclick="KoreanLearningApp.showProfilePage()">
+                <div class="profile-icon" id="profileBtn">
                     <i class="fas fa-user"></i>
                 </div>
             </div>
@@ -37,19 +37,19 @@
         </main>
 
         <footer class="bottom-nav">
-            <a href="javascript:void(0)" onclick="KoreanLearningApp.showHomePage()" class="nav-item active">
+            <a href="#" class="nav-item active" data-page="home">
                 <i class="fas fa-home"></i>
                 <span>Главная</span>
             </a>
-            <a href="javascript:void(0)" onclick="KoreanLearningApp.showProgressPage()" class="nav-item">
+            <a href="#" class="nav-item" data-page="progress">
                 <i class="fas fa-chart-line"></i>
                 <span>Прогресс</span>
             </a>
-            <a href="javascript:void(0)" onclick="KoreanLearningApp.showProfilePage()" class="nav-item">
+            <a href="#" class="nav-item" data-page="profile">
                 <i class="fas fa-user"></i>
                 <span>Профиль</span>
             </a>
-            <a href="javascript:void(0)" onclick="KoreanLearningApp.showSettingsPage()" class="nav-item">
+            <a href="#" class="nav-item" data-page="settings">
                 <i class="fas fa-cog"></i>
                 <span>Настройки</span>
             </a>
@@ -58,27 +58,5 @@
 
     <script src="js/script.js"></script>
     <script src="js/games.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof(Storage) === "undefined") {
-                document.getElementById('mainContent').innerHTML = `
-                    <div class="error-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Ошибка браузера</h3>
-                        <p>Ваш браузер не поддерживает необходимые технологии</p>
-                        <p>Пожалуйста, используйте современный браузер</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            if (typeof KoreanLearningApp !== 'undefined') {
-                KoreanLearningApp.init();
-            } else {
-                console.error("Приложение не загружено");
-            }
-        });
-    </script>
 </body>
 </html>
