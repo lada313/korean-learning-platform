@@ -1,5 +1,5 @@
-// Главный объект приложения
 const KoreanLearningApp = (function() {
+    // Состояние приложения
     const state = {
         currentPage: 'home',
         words: [],
@@ -8,15 +8,21 @@ const KoreanLearningApp = (function() {
             knownWords: [],
             difficultWords: [],
             completedLevels: []
+        },
+        dom: {
+            mainContent: null,
+            gameContainer: null,
+            defaultContent: null
         }
     };
 
+    // Инициализация приложения
     function init() {
         try {
             cacheDOMElements();
             setupEventListeners();
             loadInitialData().then(() => {
-                renderHomePage();
+                showHomePage(); // Используем showHomePage вместо renderHomePage
                 updateActiveNav();
             }).catch(showError);
         } catch (error) {
@@ -25,11 +31,9 @@ const KoreanLearningApp = (function() {
     }
 
     function cacheDOMElements() {
-        state.dom = {
-            mainContent: document.getElementById('mainContent'),
-            gameContainer: document.getElementById('gameContainer'),
-            defaultContent: document.getElementById('defaultContent')
-        };
+        state.dom.mainContent = document.getElementById('mainContent');
+        state.dom.gameContainer = document.getElementById('gameContainer');
+        state.dom.defaultContent = document.getElementById('defaultContent');
         
         if (!state.dom.mainContent || !state.dom.gameContainer || !state.dom.defaultContent) {
             throw new Error('Не удалось найти элементы интерфейса');
@@ -65,6 +69,7 @@ const KoreanLearningApp = (function() {
         });
     }
 
+    // Основные функции отображения страниц
     function showHomePage() {
         state.currentPage = 'home';
         state.dom.defaultContent.innerHTML = `
@@ -142,7 +147,7 @@ const KoreanLearningApp = (function() {
         if (!level) return;
 
         const levelWords = state.words.filter(word => level.words.includes(word.id));
-        showCardsPage(levelWords);
+        showCardsPage();
     }
 
     function showDefaultContent() {
@@ -172,60 +177,6 @@ const KoreanLearningApp = (function() {
             </div>
         `;
     }
-    // Добавим новые страницы в KoreanLearningApp
-KoreanLearningApp.showProgressPage = function() {
-    state.currentPage = 'progress';
-    state.dom.defaultContent.innerHTML = `
-        <div class="section-title">
-            <h2>Ваш прогресс</h2>
-            <button class="back-btn">На главную</button>
-        </div>
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-value">${state.userProgress.knownWords.length}</div>
-                <div class="stat-label">Изученных слов</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">${state.userProgress.completedLevels.length}</div>
-                <div class="stat-label">Пройденных уровней</div>
-            </div>
-        </div>
-    `;
-    showDefaultContent();
-    updateActiveNav();
-};
-    function updateActiveNav() {
-    document.querySelectorAll('.nav-item').forEach(item => {
-        const page = item.textContent.trim();
-        item.classList.toggle('active', 
-            (page === 'Главная' && state.currentPage === 'home') ||
-            (page === 'Прогресс' && state.currentPage === 'progress') ||
-            (page === 'Профиль' && state.currentPage === 'profile') ||
-            (page === 'Уровни' && state.currentPage === 'levels') ||
-            (page === 'Карточки' && state.currentPage === 'cards')
-        );
-    });
-}
-
-KoreanLearningApp.showProfilePage = function() {
-    state.currentPage = 'profile';
-    state.dom.defaultContent.innerHTML = `
-        <div class="section-title">
-            <h2>Ваш профиль</h2>
-            <button class="back-btn">На главную</button>
-        </div>
-        <div class="profile-card">
-            <div class="profile-avatar">
-                <i class="fas fa-user-circle"></i>
-            </div>
-            <h3>Достижения</h3>
-            <p>Изучено слов: ${state.userProgress.knownWords.length}</p>
-            <p>Пройдено уровней: ${state.userProgress.completedLevels.length}</p>
-        </div>
-    `;
-    showDefaultContent();
-    updateActiveNav();
-};
 
     // Публичные методы
     return {
@@ -233,7 +184,46 @@ KoreanLearningApp.showProfilePage = function() {
         showHomePage,
         showLevelsPage,
         showCardsPage,
-        showProfilePage: () => alert('Профиль в разработке'),
+        showProfilePage: function() {
+            state.currentPage = 'profile';
+            state.dom.defaultContent.innerHTML = `
+                <div class="section-title">
+                    <h2>Ваш профиль</h2>
+                    <button class="back-btn">На главную</button>
+                </div>
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <h3>Достижения</h3>
+                    <p>Изучено слов: ${state.userProgress.knownWords.length}</p>
+                    <p>Пройдено уровней: ${state.userProgress.completedLevels.length}</p>
+                </div>
+            `;
+            showDefaultContent();
+            updateActiveNav();
+        },
+        showProgressPage: function() {
+            state.currentPage = 'progress';
+            state.dom.defaultContent.innerHTML = `
+                <div class="section-title">
+                    <h2>Ваш прогресс</h2>
+                    <button class="back-btn">На главную</button>
+                </div>
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-value">${state.userProgress.knownWords.length}</div>
+                        <div class="stat-label">Изученных слов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${state.userProgress.completedLevels.length}</div>
+                        <div class="stat-label">Пройденных уровней</div>
+                    </div>
+                </div>
+            `;
+            showDefaultContent();
+            updateActiveNav();
+        },
         showGrammarPage: () => alert('Грамматика в разработке'),
         showTextsPage: () => alert('Тексты в разработке'),
         startLevel
@@ -254,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkGamesLoaded();
 });
 
-// Глобальные экспорты всех функций
+// Глобальные методы
 window.showHomePage = () => KoreanLearningApp.showHomePage();
 window.showLevelsPage = () => KoreanLearningApp.showLevelsPage();
 window.showCardsPage = () => KoreanLearningApp.showCardsPage();
