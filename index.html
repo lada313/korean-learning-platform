@@ -56,10 +56,16 @@
         </footer>
     </div>
 
-    <script src="script.js"></script>
-    <script>
+<script src="js/games.js"></script>
+    <script src="js/script.js"></script>
+  <script>
+        // Инициализация после загрузки всех скриптов
         document.addEventListener('DOMContentLoaded', () => {
-            window.app = new KoreanLearningApp();
+            if (typeof KoreanLearningApp !== 'undefined') {
+                window.app = new KoreanLearningApp();
+            } else {
+                console.error('KoreanLearningApp is not defined. Check script loading order.');
+            }
         });
     </script>
 </body>
