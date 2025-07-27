@@ -18,16 +18,21 @@ const KoreanLearningApp = (function() {
 
     // Публичные методы
     return {
-        init: function() {
-            this.loadUserProgress();
-            this.loadData().then(() => {
-                this.bindEvents();
-                this.showHomePage();
-            }).catch(error => {
-                console.error("App initialization failed:", error);
-                this.showErrorPage();
-            });
-        },
+init: function() {
+    try {
+        this.loadUserProgress();
+        this.loadData().then(() => {
+            this.bindEvents();
+            this.showHomePage();
+        }).catch(error => {
+            console.error("Ошибка инициализации:", error);
+            this.showErrorPage("Ошибка загрузки данных");
+        });
+    } catch (e) {
+        console.error("Критическая ошибка инициализации:", e);
+        this.showErrorPage("Системная ошибка");
+    }
+},
 
         loadData: async function() {
             try {
@@ -89,11 +94,18 @@ const KoreanLearningApp = (function() {
             localStorage.setItem('koreanProgress', JSON.stringify(userProgress));
         },
 
-        showHomePage: function() {
-            document.getElementById('gameContainer').style.display = 'none';
-            document.getElementById('defaultContent').style.display = 'block';
-            this.updateNavActiveState('home');
-        },
+      showHomePage: function() {
+    const gameContainer = document.getElementById('gameContainer');
+    const defaultContent = document.getElementById('defaultContent');
+    
+    if (gameContainer && defaultContent) {
+        gameContainer.style.display = 'none';
+        defaultContent.style.display = 'block';
+        this.updateNavActiveState('home');
+    } else {
+        console.error("Не удалось найти элементы gameContainer или defaultContent");
+    }
+},
 
         showLevelsPage: function() {
             const levelsHtml = allLevels.map(level => `
