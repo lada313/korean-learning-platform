@@ -35,28 +35,32 @@ const games = {
         let touchStartX = 0;
         let touchEndX = 0;
 
-        element.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, false);
+element.addEventListener('touchstart', handleTouchStart, false);
+element.addEventListener('touchmove', handleTouchMove, false);
 
-        element.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            this.handleSwipe();
-        }, false);
+let xDown = null;
 
-        this.handleSwipe = () => {
-            const threshold = 50;
-            if (touchEndX < touchStartX - threshold) {
-                // Свайп влево - следующая карточка
-                document.getElementById('nextCardBtn').click();
-            }
-            if (touchEndX > touchStartX + threshold) {
-                // Свайп вправо - повторить
-                document.getElementById('repeatCardBtn').click();
-            }
-        };
+function handleTouchStart(evt) {
+    xDown = evt.touches[0].clientX;
+}
+
+function handleTouchMove(evt) {
+    if (!xDown) return;
+    
+    let xUp = evt.touches[0].clientX;
+    let xDiff = xDown - xUp;
+    
+    if (Math.abs(xDiff) > 50) { // Минимальное расстояние свайпа
+        if (xDiff > 0) {
+            // Свайп влево - следующая карточка
+            document.getElementById('nextCardBtn').click();
+        } else {
+            // Свайп вправо - предыдущая карточка
+            document.getElementById('repeatCardBtn').click();
+        }
     }
-};
+    xDown = null;
+}
 
 class WordCardsGame {
     constructor(words) {
