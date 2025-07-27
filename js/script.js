@@ -195,6 +195,8 @@ async loadData() {
 
     playSound(event, text) {
         event.stopPropagation();
+        event.preventDefault(); // Добавлено для мобильных устройств
+        
         if (this.synth.speaking) {
             this.synth.cancel();
         }
@@ -203,8 +205,23 @@ async loadData() {
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.voice = this.voices[0];
             utterance.lang = 'ko-KR';
+            
+            // Важно для iOS
+            utterance.onboundary = (e) => {
+                if (e.name === 'word') {
+                    const soundBtn = event.target.closest('.sound-btn');
+                    if (soundBtn) {
+                        soundBtn.classList.add('playing');
+                        setTimeout(() => {
+                            soundBtn.classList.remove('playing');
+                        }, 1000);
+                    }
+                }
+            };
+            
             this.synth.speak(utterance);
             
+            // Для других браузеров
             const soundBtn = event.target.closest('.sound-btn');
             if (soundBtn) {
                 soundBtn.classList.add('playing');
@@ -216,6 +233,7 @@ async loadData() {
             alert('Корейский голос не доступен. Пожалуйста, добавьте корейский голос в настройках вашего браузера.');
         }
     }
+}
 
     showProgressPage() {
         document.getElementById('defaultContent').innerHTML = `
