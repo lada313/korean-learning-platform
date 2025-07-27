@@ -322,7 +322,49 @@ body {
     font-size: 1.1rem;
     user-select: none;
 }
+/* ==================== КНОПКИ ОЗВУЧИВАНИЯ ==================== */
+.sound-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 10px;
+    -webkit-tap-highlight-color: transparent;
+}
 
+.card-back .sound-btn {
+    color: var(--primary);
+}
+
+.word-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==================== ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ СЛОВ ==================== */
+.word-example {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    width: 100%;
+    text-align: center;
+}
+
+.example-korean {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+    color: var(--text-dark);
+}
+
+.example-translation {
+    font-size: 0.9rem;
+    color: var(--text-medium);
+    font-style: italic;
+}
 /* ==================== КНОПКИ ==================== */
 .card-controls {
     position: relative;
