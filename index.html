@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Korean Learning Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script defer src="js/script.js"></script>
+</head>
+<body>
+    <div class="main-menu">
+        <button onclick="KoreanApp.showLevelsPage()">Уровни</button>
+        <button onclick="KoreanApp.showCardsPage()">Карточки</button>
+        <button onclick="KoreanApp.showGrammarPage()">Грамматика</button>
+        <button onclick="KoreanApp.showTextsPage()">Тексты</button>
+    </div>
+
+    <div id="homePage">Добро пожаловать!</div>
+    <div id="levelsPage" class="hidden">Страница уровней</div>
+    <div id="cardsPage" class="hidden">Карточки слов</div>
+    <div id="grammarPage" class="hidden">Грамматика</div>
+    <div id="textsPage" class="hidden">Учебные тексты</div>
+    <div id="progressPage" class="hidden">Прогресс</div>
+    <div id="profilePage" class="hidden">Профиль</div>
+    <div id="settingsPage" class="hidden">Настройки</div>
+
+    <footer class="bottom-nav">
+        <div class="nav-item active" onclick="showHomePage()">🏠</div>
+        <div class="nav-item" onclick="showLevelsPage()">📘</div>
+        <div class="nav-item" onclick="showCardsPage()">🃏</div>
+        <div class="nav-item" onclick="showGrammarPage()">📚</div>
+        <div class="nav-item" onclick="showTextsPage()">📝</div>
+        <div class="nav-item" onclick="showProgressPage()">📈</div>
+        <div class="nav-item" onclick="showProfilePage()">👤</div>
+        <div class="nav-item" onclick="showSettingsPage()">⚙️</div>
+    </footer>
+</body>
+</html>
