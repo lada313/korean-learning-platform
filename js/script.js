@@ -10,7 +10,6 @@ class KoreanLearningApp {
         
         this.allWords = [];
         this.allLevels = [];
-        this.grammarRules = [];
         this.currentWords = [];
         this.currentCardIndex = 0;
         this.currentSessionWords = [];
@@ -23,8 +22,6 @@ class KoreanLearningApp {
     }
 
     initSpeechSynthesis() {
-        this.synth = window.speechSynthesis;
-        
         // Двойная загрузка голосов для Яндекс.Браузера
         const loadVoices = () => {
             this.voices = this.synth.getVoices().filter(voice => voice.lang.includes('ko'));
