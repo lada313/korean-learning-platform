@@ -82,7 +82,7 @@ class WordCardsGame {
             <div class="word-card" id="wordCard">
                 <div class="card-inner">
                     <div class="card-front">
-                        <div class="word-korean">${word.korean}</div>
+                        <div class="word-korean">${word?.korean || ''}</div>
                         <div class="word-romanization">${word.romanization || ''}</div>
                     </div>
                     <div class="card-back">
