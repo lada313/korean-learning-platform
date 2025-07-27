@@ -56,19 +56,18 @@
         </footer>
     </div>
 
-    <!-- Обновленные пути к скриптам -->
     <script src="js/script.js"></script>
     <script src="js/games.js"></script>
     <script>
-        // Убедимся, что DOM полностью загружен
         document.addEventListener('DOMContentLoaded', function() {
-            // Проверяем, что класс определен
-            if (typeof KoreanLearningApp !== 'undefined') {
+            if (typeof KoreanLearningApp === 'function') {
                 window.app = new KoreanLearningApp();
+                console.log('Application initialized successfully');
             } else {
-                console.error('KoreanLearningApp is not defined. Check:');
-                console.error('1. Файл script.js загружен правильно');
-                console.error('2. Класс определен с правильным именем');
+                console.error('KoreanLearningApp initialization failed:');
+                console.error('1. Check js/script.js is loaded (Network tab)');
+                console.error('2. Verify no syntax errors in console');
+                console.error('3. Confirm class is properly defined');
             }
         });
     </script>
