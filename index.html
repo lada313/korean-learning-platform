@@ -3,73 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KoreanMaster</title>
+    <title>KoreanMaster - Изучение корейского языка</title>
     <link rel="stylesheet" href="./css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div class="container">
+        <!-- Шапка с логотипом и прогрессом -->
         <header class="header">
             <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-language"></i>
-                    <span>KoreanMaster</span>
+                <div class="logo-container">
+                    <div class="logo">
+                        <i class="fas fa-language"></i>
+                        <span>KoreanMaster</span>
+                    </div>
                 </div>
-                <div class="profile-icon" id="profileBtn">
+                <div class="profile-icon" onclick="showProfilePage()">
                     <i class="fas fa-user"></i>
                 </div>
             </div>
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="progress-info">
+                <span>0% завершено</span>
+                <span>Уровень 1</span>
+            </div>
         </header>
 
-        <main id="mainContent">
+        <!-- Основное содержимое -->
+        <main id="mainContent" class="main-content">
+            <!-- Контейнер для игр (будет заполняться динамически) -->
             <div id="gameContainer" style="display: none;"></div>
-            <div id="defaultContent"></div>
+            
+            <!-- Стандартный контент (главная страница) -->
+            <div id="defaultContent">
+                <div class="modules-grid">
+                    <a href="javascript:void(0)" onclick="KoreanApp.showLevelsPage()" class="module-card">
+                        <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
+                        <h2>Уровни</h2>
+                        <p>Пошаговое изучение от начального до продвинутого</p>
+                    </a>
+
+                    <a href="javascript:void(0)" onclick="showCardsPage()" class="module-card">
+                        <div class="card-icon cards"><i class="far fa-sticky-note"></i></div>
+                        <h2>Карточки</h2>
+                        <p>Запоминание слов с интервальным повторением</p>
+                    </a>
+
+                    <a href="javascript:void(0)" onclick="showGrammarPage()" class="module-card">
+                        <div class="card-icon grammar"><i class="fas fa-book-open"></i></div>
+                        <h2>Грамматика</h2>
+                        <p>Изучение правил и языковых конструкций</p>
+                    </a>
+
+                    <a href="javascript:void(0)" onclick="showTextsPage()" class="module-card">
+                        <div class="card-icon text"><i class="fas fa-align-left"></i></div>
+                        <h2>Текст и перевод</h2>
+                        <p>Чтение и анализ текстов с переводом</p>
+                    </a>
+                </div>
+
+                <div class="repetition-section">
+                    <h2>Повторение</h2>
+                    <p>Повторяйте изученный материал для закрепления знаний</p>
+                    <button class="card-btn" onclick="showCardsPage()">
+                        <i class="fas fa-redo"></i> Начать повторение
+                    </button>
+                </div>
+            </div>
         </main>
 
-<footer class="bottom-nav">
-    <div class="nav-item active" onclick="window.KoreanLearningApp.showHomePage()">
-        <i class="fas fa-home"></i>
-        <span>Главная</span>
-    </div>
-    <div class="nav-item" onclick="window.KoreanLearningApp.showLevelsPage()">
-        <i class="fas fa-layer-group"></i>
-        <span>Уровни</span>
-    </div>
-    <div class="nav-item" onclick="window.KoreanLearningApp.showCardsPage()">
-        <i class="far fa-sticky-note"></i>
-        <span>Карточки</span>
-    </div>
-    <div class="nav-item" onclick="window.KoreanLearningApp.showProfilePage()">
-        <i class="fas fa-user"></i>
-        <span>Профиль</span>
-    </div>
-</footer>
+        <!-- Нижнее меню навигации -->
+        <footer class="bottom-nav">
+            <a href="javascript:void(0)" onclick="showHomePage()" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </a>
+            <a href="javascript:void(0)" onclick="showProgressPage()" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Прогресс</span>
+            </a>
+            <a href="javascript:void(0)" onclick="showProfilePage()" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Профиль</span>
+            </a>
+            <a href="javascript:void(0)" onclick="showSettingsPage()" class="nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Настройки</span>
+            </a>
+        </footer>
     </div>
 
-<script>
-    // Глобальный объект для проверки загрузки
-    window.appReady = {
-        gamesLoaded: false,
-        appLoaded: false
-    };
-</script>
-<script src="js/games.js" onload="window.appReady.gamesLoaded = true"></script>
-<script src="js/script.js" onload="window.appReady.appLoaded = true"></script>
-<script>
-    // Проверка готовности
-    function checkAppReady() {
-        if (window.appReady.gamesLoaded && window.appReady.appLoaded) {
-            if (window.KoreanLearningApp && typeof window.KoreanLearningApp.init === 'function') {
-                window.KoreanLearningApp.init();
-            } else {
-                console.error('KoreanLearningApp не инициализирован');
+    <!-- Подключение скриптов -->
+    <script src="js/script.js"></script>
+    <script src="js/games.js"></script>
+    
+    <!-- Инициализация приложения -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof(Storage) === "undefined") {
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Ошибка браузера</h3>
+                        <p>Ваш браузер не поддерживает необходимые технологии</p>
+                        <p>Пожалуйста, используйте современный браузер</p>
+                    </div>
+                `;
+                return;
             }
-        } else {
-            setTimeout(checkAppReady, 100);
+            
+            if (typeof loadUserProgress === 'function' && 
+                typeof loadData === 'function' && 
+                typeof showHomePage === 'function') {
+                loadUserProgress();
+                loadData().then(() => {
+                    showHomePage();
+                });
+            } else {
+                console.error("Функции приложения не загружены");
+            }
+        });
+
+        function exitGame() {
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('defaultContent').style.display = 'block';
+            showLevelsPage();
         }
-    }
-    checkAppReady();
-</script>
+
+        function startCardGame(words) {
+            document.getElementById('defaultContent').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            games.startCardGame(words);
+        }
+    </script>
 </body>
 </html>
