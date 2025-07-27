@@ -14,43 +14,69 @@ const KoreanLearningApp = (function() {
     let allGrammar = [];
     let allTexts = [];
 
+    // Вспомогательные функции
+    function updateNavActiveState(activePage) {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        const activeNavItem = document.querySelector(`.nav-item[onclick*="${activePage}"]`);
+        if (activeNavItem) {
+            activeNavItem.classList.add('active');
+        }
+    }
+
     // Публичные методы
     return {
         init: function() {
             this.loadUserProgress();
             this.loadData().then(() => {
-                this.bindEvents();
                 this.showHomePage();
             }).catch(error => {
-                console.error("App initialization failed:", error);
-                this.showErrorPage();
+                console.error("Ошибка загрузки данных:", error);
+                this.showErrorPage("Ошибка загрузки данных");
             });
         },
 
         loadData: async function() {
             try {
-                const wordsResponse = await fetch('data/words.json');
+                // Загрузка слов
+                const wordsResponse = await fetch('./data/words.json');
+                if (!wordsResponse.ok) throw new Error("Не удалось загрузить слова");
                 allWords = await wordsResponse.json();
-                
-                const levelsResponse = await fetch('data/levels.json');
-                allLevels = await levelsResponse.json();
+                console.log("Слова загружены");
 
+                // Загрузка уровней
+                const levelsResponse = await fetch('./data/levels.json');
+                if (!levelsResponse.ok) throw new Error("Не удалось загрузить уровни");
+                allLevels = await levelsResponse.json();
+                console.log("Уровни загружены");
+
+                // Загрузка грамматики (не обязательно)
                 try {
-                    const grammarResponse = await fetch('data/grammar.json');
-                    allGrammar = await grammarResponse.json();
+                    const grammarResponse = await fetch('./data/grammar.json');
+                    if (grammarResponse.ok) {
+                        allGrammar = await grammarResponse.json();
+                        console.log("Грамматика загружена");
+                    }
                 } catch (e) {
-                    console.warn("Grammar load warning:", e);
+                    console.warn("Ошибка загрузки грамматики:", e);
                 }
 
+                // Загрузка текстов (не обязательно)
                 try {
-                    const textsResponse = await fetch('data/texts.json');
-                    allTexts = await textsResponse.json();
+                    const textsResponse = await fetch('./data/texts.json');
+                    if (textsResponse.ok) {
+                        allTexts = await textsResponse.json();
+                        console.log("Тексты загружены");
+                    }
                 } catch (e) {
-                    console.warn("Texts load warning:", e);
+                    console.warn("Ошибка загрузки текстов:", e);
                 }
 
             } catch (error) {
-                console.error("Data load error:", error);
+                console.error("Ошибка загрузки данных:", error);
+                // Fallback данные
                 allWords = allWords.length ? allWords : [{
                     id: 1,
                     korean: "안녕하세요",
@@ -74,8 +100,9 @@ const KoreanLearningApp = (function() {
             if (saved) {
                 try {
                     Object.assign(userProgress, JSON.parse(saved));
+                    console.log("Прогресс загружен");
                 } catch (e) {
-                    console.error("Progress load error:", e);
+                    console.error("Ошибка загрузки прогресса:", e);
                 }
             }
         },
@@ -85,27 +112,27 @@ const KoreanLearningApp = (function() {
         },
 
         showHomePage: function() {
-            document.getElementById('mainContent').innerHTML = `
+            document.getElementById('defaultContent').innerHTML = `
                 <div class="modules-grid">
-                    <a href="javascript:void(0)" onclick="showLevelsPage()" class="module-card">
+                    <a href="javascript:void(0)" onclick="KoreanLearningApp.showLevelsPage()" class="module-card">
                         <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
                         <h2>Уровни</h2>
                         <p>Пошаговое изучение от начального до продвинутого</p>
                     </a>
 
-                    <a href="javascript:void(0)" onclick="showCardsPage()" class="module-card">
+                    <a href="javascript:void(0)" onclick="KoreanLearningApp.showCardsPage()" class="module-card">
                         <div class="card-icon cards"><i class="far fa-sticky-note"></i></div>
                         <h2>Карточки</h2>
                         <p>Запоминание слов с интервальным повторением</p>
                     </a>
 
-                    <a href="javascript:void(0)" onclick="showGrammarPage()" class="module-card">
+                    <a href="javascript:void(0)" onclick="KoreanLearningApp.showGrammarPage()" class="module-card">
                         <div class="card-icon grammar"><i class="fas fa-book-open"></i></div>
                         <h2>Грамматика</h2>
                         <p>Изучение правил и языковых конструкций</p>
                     </a>
 
-                    <a href="javascript:void(0)" onclick="showTextsPage()" class="module-card">
+                    <a href="javascript:void(0)" onclick="KoreanLearningApp.showTextsPage()" class="module-card">
                         <div class="card-icon text"><i class="fas fa-align-left"></i></div>
                         <h2>Текст и перевод</h2>
                         <p>Чтение и анализ текстов с переводом</p>
@@ -115,23 +142,23 @@ const KoreanLearningApp = (function() {
                 <div class="repetition-section">
                     <h2>Повторение</h2>
                     <p>Повторяйте изученный материал для закрепления знаний</p>
-                    <button class="card-btn" onclick="showCardsPage()">
+                    <button class="card-btn" onclick="KoreanLearningApp.showCardsPage()">
                         <i class="fas fa-redo"></i> Начать повторение
                     </button>
                 </div>
             `;
-            this.updateNavActiveState('home');
+            updateNavActiveState('home');
         },
 
         showLevelsPage: function() {
             const levelsHtml = allLevels.map(level => `
-                <div class="level-card" data-level="${level.id}">
+                <div class="level-card" onclick="KoreanLearningApp.startLevel(${level.id})">
                     <h3>${level.title}</h3>
                     ${level.description ? `<p>${level.description}</p>` : ''}
                 </div>
             `).join('');
 
-            document.getElementById('mainContent').innerHTML = `
+            document.getElementById('defaultContent').innerHTML = `
                 <div class="section-title">
                     <h2>Уровни изучения</h2>
                 </div>
@@ -139,47 +166,53 @@ const KoreanLearningApp = (function() {
                     ${levelsHtml}
                 </div>
             `;
-            this.updateNavActiveState('levels');
+            updateNavActiveState('levels');
+        },
+
+        startLevel: function(levelId) {
+            console.log("Запуск уровня", levelId);
+            // Здесь будет логика запуска уровня
+            alert(`Запуск уровня ${levelId}`);
         },
 
         showCardsPage: function() {
-            document.getElementById('mainContent').innerHTML = `
+            document.getElementById('defaultContent').innerHTML = `
                 <div class="section-title">
                     <h2>Карточки слов</h2>
                 </div>
                 <div class="word-card">
-                    <!-- Контент карточек будет генерироваться динамически -->
+                    <p>Здесь будут карточки для изучения слов</p>
                 </div>
             `;
-            this.updateNavActiveState('cards');
+            updateNavActiveState('cards');
         },
 
         showGrammarPage: function() {
-            document.getElementById('mainContent').innerHTML = `
+            document.getElementById('defaultContent').innerHTML = `
                 <div class="section-title">
                     <h2>Грамматика</h2>
                 </div>
                 <div class="grammar-container">
-                    <!-- Контент грамматики будет генерироваться динамически -->
+                    <p>Здесь будут материалы по грамматике</p>
                 </div>
             `;
-            this.updateNavActiveState('grammar');
+            updateNavActiveState('grammar');
         },
 
         showTextsPage: function() {
-            document.getElementById('mainContent').innerHTML = `
+            document.getElementById('defaultContent').innerHTML = `
                 <div class="section-title">
                     <h2>Тексты для чтения</h2>
                 </div>
                 <div class="texts-container">
-                    <!-- Контент текстов будет генерироваться динамически -->
+                    <p>Здесь будут тексты для чтения</p>
                 </div>
             `;
-            this.updateNavActiveState('texts');
+            updateNavActiveState('texts');
         },
 
         showProgressPage: function() {
-            document.getElementById('mainContent').innerHTML = `
+            document.getElementById('defaultContent').innerHTML = `
                 <div class="section-title">
                     <h2>Ваш прогресс</h2>
                 </div>
@@ -194,11 +227,11 @@ const KoreanLearningApp = (function() {
                     </div>
                 </div>
             `;
-            this.updateNavActiveState('progress');
+            updateNavActiveState('progress');
         },
 
         showProfilePage: function() {
-            document.getElementById('mainContent').innerHTML = `
+            document.getElementById('defaultContent').innerHTML = `
                 <div class="profile-container">
                     <div class="profile-card">
                         <div class="profile-avatar">
@@ -212,11 +245,11 @@ const KoreanLearningApp = (function() {
                     </div>
                 </div>
             `;
-            this.updateNavActiveState('profile');
+            updateNavActiveState('profile');
         },
 
         showSettingsPage: function() {
-            document.getElementById('mainContent').innerHTML = `
+            document.getElementById('defaultContent').innerHTML = `
                 <div class="settings-container">
                     <h2>Настройки</h2>
                     <div class="setting-item">
@@ -228,27 +261,7 @@ const KoreanLearningApp = (function() {
                     </div>
                 </div>
             `;
-            this.updateNavActiveState('settings');
-        },
-
-        updateNavActiveState: function(activePage) {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            const activeNavItem = document.querySelector(`.nav-item[onclick*="${activePage}"]`);
-            if (activeNavItem) {
-                activeNavItem.classList.add('active');
-            }
-        },
-
-        bindEvents: function() {
-            document.addEventListener('click', (e) => {
-                const levelCard = e.target.closest('.level-card');
-                if (levelCard) {
-                    this.startLevel(parseInt(levelCard.dataset.level));
-                }
-            });
+            updateNavActiveState('settings');
         },
 
         showErrorPage: function(message = "Произошла ошибка") {
@@ -262,16 +275,6 @@ const KoreanLearningApp = (function() {
         }
     };
 })();
-
-// Глобальные функции для навигации
-window.showHomePage = () => KoreanLearningApp.showHomePage();
-window.showLevelsPage = () => KoreanLearningApp.showLevelsPage();
-window.showCardsPage = () => KoreanLearningApp.showCardsPage();
-window.showGrammarPage = () => KoreanLearningApp.showGrammarPage();
-window.showTextsPage = () => KoreanLearningApp.showTextsPage();
-window.showProgressPage = () => KoreanLearningApp.showProgressPage();
-window.showProfilePage = () => KoreanLearningApp.showProfilePage();
-window.showSettingsPage = () => KoreanLearningApp.showSettingsPage();
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', () => {
