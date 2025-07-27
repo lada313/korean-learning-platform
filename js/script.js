@@ -34,21 +34,21 @@ class KoreanLearningApp {
         }
     }
 
-async loadData() {
+    async loadData() {
         try {
             const [wordsResponse, levelsResponse, grammarResponse] = await Promise.all([
-                fetch('data/words.json'),  // Обновленный путь
-                fetch('data/levels.json'), // Обновленный путь
-                fetch('data/grammar.json') // Обновленный путь
+                fetch('data/words.json'),
+                fetch('data/levels.json'),
+                fetch('data/grammar.json')
             ]);
             
             this.allWords = await wordsResponse.json();
             this.allLevels = await levelsResponse.json();
             this.grammarRules = await grammarResponse.json();
             
-            console.log("Данные успешно загружены");
+            console.log("Data loaded successfully");
         } catch (error) {
-            console.error("Ошибка загрузки:", error);
+            console.error("Loading error:", error);
             this.showErrorPage("Ошибка загрузки данных");
         }
     }
@@ -68,7 +68,10 @@ async loadData() {
     }
 
     showPage(page) {
-        this[`show${page.charAt(0).toUpperCase() + page.slice(1)}Page`]();
+        const methodName = `show${page.charAt(0).toUpperCase() + page.slice(1)}Page`;
+        if (typeof this[methodName] === 'function') {
+            this[methodName]();
+        }
     }
 
     updateNavActiveState(activePage) {
@@ -169,7 +172,12 @@ async loadData() {
         ).filter(Boolean);
 
         if (this.currentWords.length > 0) {
-            games.startCardGame(this.currentWords);
+            if (typeof games !== 'undefined' && typeof games.startCardGame === 'function') {
+                games.startCardGame(this.currentWords);
+            } else {
+                console.error('Games module not loaded');
+                this.showCardsPage(true);
+            }
         } else {
             alert('Нет слов для этого уровня');
         }
@@ -190,12 +198,17 @@ async loadData() {
             return;
         }
 
-        games.startCardGame(words);
+        if (typeof games !== 'undefined' && typeof games.startCardGame === 'function') {
+            games.startCardGame(words);
+        } else {
+            console.error('Games module not available');
+            this.showErrorPage('Функция карточек недоступна');
+        }
     }
 
     playSound(event, text) {
         event.stopPropagation();
-        event.preventDefault(); // Добавлено для мобильных устройств
+        event.preventDefault();
         
         if (this.synth.speaking) {
             this.synth.cancel();
@@ -206,34 +219,23 @@ async loadData() {
             utterance.voice = this.voices[0];
             utterance.lang = 'ko-KR';
             
-            // Важно для iOS
-            utterance.onboundary = (e) => {
-                if (e.name === 'word') {
-                    const soundBtn = event.target.closest('.sound-btn');
-                    if (soundBtn) {
-                        soundBtn.classList.add('playing');
-                        setTimeout(() => {
-                            soundBtn.classList.remove('playing');
-                        }, 1000);
-                    }
-                }
+            // Для iOS
+            utterance.onboundary = () => {
+                const soundBtn = event.target.closest('.sound-btn');
+                if (soundBtn) soundBtn.classList.add('playing');
             };
             
             this.synth.speak(utterance);
             
-            // Для других браузеров
             const soundBtn = event.target.closest('.sound-btn');
             if (soundBtn) {
                 soundBtn.classList.add('playing');
-                setTimeout(() => {
-                    soundBtn.classList.remove('playing');
-                }, 1000);
+                setTimeout(() => soundBtn.classList.remove('playing'), 1000);
             }
         } else {
             alert('Корейский голос не доступен. Пожалуйста, добавьте корейский голос в настройках вашего браузера.');
         }
     }
-}
 
     showProgressPage() {
         document.getElementById('defaultContent').innerHTML = `
@@ -299,6 +301,8 @@ async loadData() {
         `;
     }
 }
+
+// Экспорт класса
 if (typeof window !== 'undefined') {
     window.KoreanLearningApp = KoreanLearningApp;
 }
