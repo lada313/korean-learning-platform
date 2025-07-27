@@ -793,3 +793,79 @@ input:checked + .slider:before {
 .swipe-right {
     animation: swipeRight 0.3s forwards;
 }
+
+/* Sound Button Styles */
+.sound-btn-container {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.sound-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-back .sound-btn {
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--primary);
+}
+
+.sound-btn:hover {
+    transform: scale(1.1);
+}
+
+.sound-btn.playing::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    animation: soundWave 0.8s ease-out;
+}
+
+@keyframes soundWave {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* Swipe Hint */
+.swipe-hint {
+    position: absolute;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    pointer-events: none;
+}
+
+/* Mobile Adaptations */
+@media (max-width: 600px) {
+    .sound-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+    
+    .word-card {
+        touch-action: pan-y;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+}
