@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="progress-container">
-                <div class="progress-bar"></div>
+                <div class="progress-bar" style="width: 0%"></div>
             </div>
             <div class="progress-info">
                 <span>0% завершено</span>
@@ -58,5 +58,10 @@
 
     <script src="js/script.js"></script>
     <script src="js/games.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new KoreanLearningApp();
+        });
+    </script>
 </body>
 </html>
