@@ -175,14 +175,16 @@ function showHomePage() {
 
 function showLevelsPage() {
     try {
-        const levelsHtml = allLevels.map(level => `
-            <div class="level-card" onclick="startLevel(${level.id})">
-                <h3>${level.title}</h3>
-                <p>${level.description}</p>
+        const levelsHtml = allLevels.map((level, index) => `
+            <div class="level-card ${level.locked ? 'locked' : ''}" 
+                 onclick="${level.locked ? '' : `startLevel(${level.id})`}">
+                <h3>${index + 1} Уровень</h3>
+                <p>${level.description || 'Изучение новых слов и грамматики'}</p>
                 <div class="level-progress">
                     <div class="progress-bar" 
-                         style="width: ${level.completed ? 100 : 0}%"></div>
+                         style="width: ${userProgress.completedLevels.includes(level.id) ? 100 : 0}%"></div>
                 </div>
+                ${level.locked ? '<div class="lock-icon"><i class="fas fa-lock"></i></div>' : ''}
             </div>
         `).join('');
 
