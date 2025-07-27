@@ -20,6 +20,12 @@ const games = {
         document.getElementById('repeatCardBtn').addEventListener('click', () => {
             this.currentGame.repeatCard();
         });
+        
+        document.getElementById('exitCardsBtn').addEventListener('click', () => {
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('defaultContent').style.display = 'block';
+            window.app.showLevelsPage();
+        });
     }
 };
 
@@ -84,7 +90,6 @@ class WordCardsGame {
         const currentWord = this.words[this.currentIndex];
         this.wordsToRepeat.push(currentWord);
         document.getElementById('wordCard').classList.remove('flipped');
-        this.nextCard();
     }
 
     updateCard() {
