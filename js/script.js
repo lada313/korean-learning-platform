@@ -172,6 +172,60 @@ const KoreanLearningApp = (function() {
             </div>
         `;
     }
+    // Добавим новые страницы в KoreanLearningApp
+KoreanLearningApp.showProgressPage = function() {
+    state.currentPage = 'progress';
+    state.dom.defaultContent.innerHTML = `
+        <div class="section-title">
+            <h2>Ваш прогресс</h2>
+            <button class="back-btn">На главную</button>
+        </div>
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value">${state.userProgress.knownWords.length}</div>
+                <div class="stat-label">Изученных слов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${state.userProgress.completedLevels.length}</div>
+                <div class="stat-label">Пройденных уровней</div>
+            </div>
+        </div>
+    `;
+    showDefaultContent();
+    updateActiveNav();
+};
+    function updateActiveNav() {
+    document.querySelectorAll('.nav-item').forEach(item => {
+        const page = item.textContent.trim();
+        item.classList.toggle('active', 
+            (page === 'Главная' && state.currentPage === 'home') ||
+            (page === 'Прогресс' && state.currentPage === 'progress') ||
+            (page === 'Профиль' && state.currentPage === 'profile') ||
+            (page === 'Уровни' && state.currentPage === 'levels') ||
+            (page === 'Карточки' && state.currentPage === 'cards')
+        );
+    });
+}
+
+KoreanLearningApp.showProfilePage = function() {
+    state.currentPage = 'profile';
+    state.dom.defaultContent.innerHTML = `
+        <div class="section-title">
+            <h2>Ваш профиль</h2>
+            <button class="back-btn">На главную</button>
+        </div>
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <h3>Достижения</h3>
+            <p>Изучено слов: ${state.userProgress.knownWords.length}</p>
+            <p>Пройдено уровней: ${state.userProgress.completedLevels.length}</p>
+        </div>
+    `;
+    showDefaultContent();
+    updateActiveNav();
+};
 
     // Публичные методы
     return {
@@ -200,16 +254,20 @@ document.addEventListener('DOMContentLoaded', () => {
     checkGamesLoaded();
 });
 
-// Глобальные методы
+// Глобальные экспорты всех функций
 window.showHomePage = () => KoreanLearningApp.showHomePage();
 window.showLevelsPage = () => KoreanLearningApp.showLevelsPage();
 window.showCardsPage = () => KoreanLearningApp.showCardsPage();
+window.showProgressPage = () => KoreanLearningApp.showProgressPage();
+window.showProfilePage = () => KoreanLearningApp.showProfilePage();
+window.showGrammarPage = () => KoreanLearningApp.showGrammarPage();
+window.showTextsPage = () => KoreanLearningApp.showTextsPage();
 window.startCardGame = (words) => {
     if (window.games?.startCardGame) {
         document.getElementById('defaultContent').style.display = 'none';
         document.getElementById('gameContainer').style.display = 'block';
         games.startCardGame(words);
     } else {
-        alert('Игровой модуль не загружен!');
+        alert('Игровой модуль не загружен! Обновите страницу.');
     }
 };
