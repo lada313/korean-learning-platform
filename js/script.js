@@ -16,8 +16,6 @@ class KoreanLearningApp {
         this.wordsToRepeat = [];
         this.synth = window.speechSynthesis;
         this.voices = [];
-        this.touchStartX = 0;
-        this.touchEndX = 0;
 
         this.init();
     }
@@ -27,14 +25,12 @@ class KoreanLearningApp {
         this.loadVoices();
         this.bindEvents();
         this.showHomePage();
-        
-        setTimeout(() => this.loadVoices(), 1000);
     }
 
     loadVoices() {
         this.voices = this.synth.getVoices().filter(voice => voice.lang.includes('ko'));
         if (this.voices.length === 0) {
-            console.warn('Korean voices not available');
+            console.warn('No Korean voices available');
         }
     }
 
@@ -49,6 +45,8 @@ class KoreanLearningApp {
             this.allWords = await wordsResponse.json();
             this.allLevels = await levelsResponse.json();
             this.grammarRules = await grammarResponse.json();
+            
+            console.log("Данные успешно загружены");
         } catch (error) {
             console.error("Ошибка загрузки:", error);
             this.showErrorPage("Ошибка загрузки данных");
@@ -171,7 +169,7 @@ class KoreanLearningApp {
         ).filter(Boolean);
 
         if (this.currentWords.length > 0) {
-            this.showCardsPage(true);
+            games.startCardGame(this.currentWords);
         } else {
             alert('Нет слов для этого уровня');
         }
@@ -192,170 +190,13 @@ class KoreanLearningApp {
             return;
         }
 
-        this.currentCardIndex = 0;
-        this.currentSessionWords = [...words];
-        this.wordsToRepeat = [];
-
-        const currentWord = words[0];
-        const example = currentWord.examples ? currentWord.examples[0] : null;
-
-        document.getElementById('defaultContent').innerHTML = `
-            <div class="section-title">
-                <h2>Карточки слов</h2>
-                <button class="card-btn" id="exitCardsBtn">
-                    <i class="fas fa-times"></i> Выйти
-                </button>
-            </div>
-            <div class="word-card" id="wordCard">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="word-korean">${currentWord.korean}</div>
-                        <button class="sound-btn sound-btn-front" onclick="app.playSound(event, '${currentWord.korean}')">
-                            <i class="fas fa-volume-up"></i>
-                        </button>
-                    </div>
-                    <div class="card-back">
-                        <div class="word-translation">${currentWord.translation}</div>
-                        ${example ? `
-                        <div class="word-example">
-                            <div class="example-header">
-                                <span>Пример:</span>
-                                <button class="sound-btn" onclick="app.playSound(event, '${example.korean}')">
-                                    <i class="fas fa-volume-up"></i>
-                                </button>
-                            </div>
-                            <div class="example-korean">${example.korean}</div>
-                            <div class="example-translation">${example.translation}</div>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-                <div class="card-controls">
-                    <button class="card-btn" id="repeatCardBtn">
-                        <i class="fas fa-redo"></i> Повторить
-                    </button>
-                    <button class="card-btn primary" id="nextCardBtn">
-                        <i class="fas fa-arrow-right"></i> Следующая
-                    </button>
-                </div>
-                <div class="progress">1/${words.length}</div>
-            </div>
-        `;
-
-        const wordCard = document.getElementById('wordCard');
-        const nextBtn = document.getElementById('nextCardBtn');
-        const repeatBtn = document.getElementById('repeatCardBtn');
-        const exitBtn = document.getElementById('exitCardsBtn');
-
-        // Обработчики свайпа
-        wordCard.addEventListener('touchstart', (e) => {
-            this.touchStartX = e.changedTouches[0].screenX;
-        }, {passive: true});
-
-        wordCard.addEventListener('touchend', (e) => {
-            this.touchEndX = e.changedTouches[0].screenX;
-            this.handleSwipe();
-        }, {passive: true});
-
-        wordCard.addEventListener('click', (e) => {
-            if (e.target.closest('.sound-btn') || e.target.closest('.card-controls')) return;
-            wordCard.classList.toggle('flipped');
-        });
-
-        nextBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.currentCardIndex++;
-            
-            if (this.currentCardIndex < this.currentSessionWords.length) {
-                const word = this.currentSessionWords[this.currentCardIndex];
-                this.updateCard(word);
-                wordCard.classList.remove('flipped');
-            } else if (this.wordsToRepeat.length > 0) {
-                this.currentSessionWords = [...this.wordsToRepeat];
-                this.wordsToRepeat = [];
-                this.currentCardIndex = 0;
-                const word = this.currentSessionWords[0];
-                this.updateCard(word);
-                wordCard.classList.remove('flipped');
-            } else {
-                this.showLevelsPage();
-            }
-        });
-
-        repeatBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const currentWord = this.currentSessionWords[this.currentCardIndex];
-            this.wordsToRepeat.push(currentWord);
-            wordCard.classList.remove('flipped');
-        });
-
-        exitBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.showLevelsPage();
-        });
-
-        this.updateNavActiveState('cards');
-    }
-
-    handleSwipe() {
-        const diff = this.touchStartX - this.touchEndX;
-        const swipeThreshold = 50;
-
-        if (diff > swipeThreshold) {
-            document.getElementById('nextCardBtn').click();
-        } else if (diff < -swipeThreshold) {
-            this.currentCardIndex = Math.max(0, this.currentCardIndex - 1);
-            const word = this.currentSessionWords[this.currentCardIndex];
-            this.updateCard(word);
-            document.getElementById('wordCard').classList.remove('flipped');
-        }
-    }
-
-    updateCard(word) {
-        const wordCard = document.getElementById('wordCard');
-        const front = wordCard.querySelector('.card-front');
-        const back = wordCard.querySelector('.card-back');
-        const progress = wordCard.querySelector('.progress');
-        
-        const example = word.examples ? word.examples[0] : null;
-        
-        front.innerHTML = `
-            <div class="word-korean">${word.korean}</div>
-            <button class="sound-btn sound-btn-front" onclick="app.playSound(event, '${word.korean}')">
-                <i class="fas fa-volume-up"></i>
-            </button>
-        `;
-        
-        back.innerHTML = `
-            <div class="word-translation">${word.translation}</div>
-            ${example ? `
-            <div class="word-example">
-                <div class="example-header">
-                    <span>Пример:</span>
-                    <button class="sound-btn" onclick="app.playSound(event, '${example.korean}')">
-                        <i class="fas fa-volume-up"></i>
-                    </button>
-                </div>
-                <div class="example-korean">${example.korean}</div>
-                <div class="example-translation">${example.translation}</div>
-            </div>
-            ` : ''}
-        `;
-        
-        progress.textContent = `${this.currentCardIndex + 1}/${this.currentSessionWords.length}`;
+        games.startCardGame(words);
     }
 
     playSound(event, text) {
         event.stopPropagation();
-        event.preventDefault();
-        
         if (this.synth.speaking) {
             this.synth.cancel();
-            return;
-        }
-
-        if (this.voices.length === 0) {
-            this.loadVoices();
         }
 
         if (this.voices.length > 0) {
@@ -363,8 +204,17 @@ class KoreanLearningApp {
             utterance.voice = this.voices[0];
             utterance.lang = 'ko-KR';
             this.synth.speak(utterance);
+            
+            // Анимация кнопки звука
+            const soundBtn = event.target.closest('.sound-btn');
+            if (soundBtn) {
+                soundBtn.classList.add('playing');
+                setTimeout(() => {
+                    soundBtn.classList.remove('playing');
+                }, 1000);
+            }
         } else {
-            console.log('Korean voice not available');
+            alert('Корейский голос не доступен. Пожалуйста, добавьте корейский голос в настройках вашего браузера.');
         }
     }
 
@@ -432,8 +282,3 @@ class KoreanLearningApp {
         `;
     }
 }
-
-// Инициализация приложения
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new KoreanLearningApp();
-});
