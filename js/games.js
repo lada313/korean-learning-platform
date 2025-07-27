@@ -1,4 +1,19 @@
 // games.js
+if (!window.games) {
+    window.games = {
+        currentGame: null,
+        startCardGame: function(words) {
+            this.currentGame = new WordCardsGame(words);
+            document.getElementById('gameContainer').innerHTML = 
+                this.currentGame.renderCard();
+        },
+        startMatchGame: function(words) {
+            this.currentGame = new MatchTranslationGame(words);
+            document.getElementById('gameContainer').innerHTML = 
+                this.currentGame.render();
+        }
+    };
+}
 class WordCardsGame {
   constructor(words) {
     this.words = words;
