@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KoreanMaster - Изучение корейского языка</title>
-     <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -35,12 +35,6 @@
             <div id="gameContainer" style="display: none;"></div>
             <div id="defaultContent"></div>
         </main>
-        <div class="card-front">
-    <div class="word-korean">${word?.korean || ''}</div>
-    <button class="sound-btn" onclick="app.playSound(event, '${word?.korean || ''}')">
-        <i class="fas fa-volume-up"></i>
-    </button>
-</div>
 
         <footer class="bottom-nav">
             <a href="#" class="nav-item active" data-page="home">
@@ -61,13 +55,10 @@
             </a>
         </footer>
     </div>
-<div class="swipe-hint">
-    <i class="fas fa-arrow-left"></i> Свайп для переключения <i class="fas fa-arrow-right"></i>
-</div>
-<script src="js/games.js"></script>
-    <script src="js/script.js"></script>
-  <script>
-        // Инициализация после загрузки всех скриптов
+
+    <script src="games.js"></script>
+    <script src="script.js"></script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof KoreanLearningApp !== 'undefined') {
                 window.app = new KoreanLearningApp();
