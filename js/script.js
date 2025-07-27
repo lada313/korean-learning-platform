@@ -10,33 +10,34 @@ class KoreanLearningApp {
         
         this.allWords = [];
         this.allLevels = [];
-        this.allGrammar = [];
-        this.allTexts = [];
+        this.currentWords = [];
 
         this.init();
     }
 
     async init() {
-        this.bindEvents();
         await this.loadData();
+        this.bindEvents();
         this.showHomePage();
     }
 
     async loadData() {
         try {
-            // Загрузка слов
-            const wordsResponse = await fetch('./data/words.json');
-            if (!wordsResponse.ok) throw new Error("Не удалось загрузить слова");
+            const [wordsResponse, levelsResponse] = await Promise.all([
+                fetch('./data/words.json'),
+                fetch('./data/levels.json')
+            ]);
+            
+            if (!wordsResponse.ok || !levelsResponse.ok) {
+                throw new Error("Ошибка загрузки данных");
+            }
+
             this.allWords = await wordsResponse.json();
-
-            // Загрузка уровней
-            const levelsResponse = await fetch('./data/levels.json');
-            if (!levelsResponse.ok) throw new Error("Не удалось загрузить уровни");
             this.allLevels = await levelsResponse.json();
-
+            
             console.log("Данные успешно загружены");
         } catch (error) {
-            console.error("Ошибка загрузки данных:", error);
+            console.error("Ошибка загрузки:", error);
             this.showErrorPage("Ошибка загрузки данных");
         }
     }
@@ -47,25 +48,24 @@ class KoreanLearningApp {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
                 const page = item.dataset.page;
-                this[`show${page.charAt(0).toUpperCase() + page.slice(1)}Page`]();
+                this.showPage(page);
             });
         });
 
         // Кнопка профиля
-        document.getElementById('profileBtn').addEventListener('click', () => {
-            this.showProfilePage();
+        document.getElementById('profileBtn')?.addEventListener('click', () => {
+            this.showPage('profile');
         });
+    }
+
+    showPage(page) {
+        this[`show${page.charAt(0).toUpperCase() + page.slice(1)}Page`]();
     }
 
     updateNavActiveState(activePage) {
         document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.remove('active');
+            item.classList.toggle('active', item.dataset.page === activePage);
         });
-        
-        const activeNavItem = document.querySelector(`.nav-item[data-page="${activePage}"]`);
-        if (activeNavItem) {
-            activeNavItem.classList.add('active');
-        }
     }
 
     showHomePage() {
@@ -105,11 +105,10 @@ class KoreanLearningApp {
             </div>
         `;
 
-        // Добавляем обработчики для карточек на главной
+        // Обработчики для карточек на главной
         document.querySelectorAll('.module-card').forEach(card => {
             card.addEventListener('click', () => {
-                const page = card.dataset.page;
-                this[`show${page.charAt(0).toUpperCase() + page.slice(1)}Page`]();
+                this.showPage(card.dataset.page);
             });
         });
 
@@ -125,6 +124,9 @@ class KoreanLearningApp {
             <div class="level-card" data-level="${level.id}">
                 <h3>${level.title}</h3>
                 <p>Слов: ${level.words.length}</p>
+                <div class="level-progress">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
             </div>
         `).join('');
 
@@ -137,7 +139,7 @@ class KoreanLearningApp {
             </div>
         `;
 
-        // Добавляем обработчики для уровней
+        // Обработчики для уровней
         document.querySelectorAll('.level-card').forEach(card => {
             card.addEventListener('click', () => {
                 const levelId = parseInt(card.dataset.level);
@@ -152,23 +154,31 @@ class KoreanLearningApp {
         const level = this.allLevels.find(l => l.id === levelId);
         if (!level) return;
 
-        const words = level.words.map(wordId => 
+        this.currentWords = level.words.map(wordId => 
             this.allWords.find(word => word.id === wordId)
         ).filter(Boolean);
 
-        if (words.length > 0) {
-            document.getElementById('defaultContent').style.display = 'none';
-            document.getElementById('gameContainer').style.display = 'block';
-            games.startCardGame(words);
+        if (this.currentWords.length > 0) {
+            this.showCardsPage(true);
         } else {
             alert('Нет слов для этого уровня');
         }
     }
 
-    showCardsPage() {
-        const randomWords = [...this.allWords]
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 10);
+    showCardsPage(fromLevel = false) {
+        const words = fromLevel ? this.currentWords : 
+            [...this.allWords].sort(() => 0.5 - Math.random()).slice(0, 10);
+
+        if (words.length === 0) {
+            document.getElementById('defaultContent').innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h3>Нет доступных слов</h3>
+                    <p>Попробуйте выбрать другой уровень</p>
+                </div>
+            `;
+            return;
+        }
 
         document.getElementById('defaultContent').innerHTML = `
             <div class="section-title">
@@ -177,29 +187,96 @@ class KoreanLearningApp {
             <div class="word-card">
                 <div class="card-inner">
                     <div class="card-front">
-                        <div class="word-korean">${randomWords[0]?.korean || 'Нет слов'}</div>
-                        <div class="word-romanization">${randomWords[0]?.romanization || ''}</div>
+                        <div class="word-korean">${words[0].korean}</div>
+                        <div class="word-romanization">${words[0].romanization}</div>
                     </div>
                     <div class="card-back">
-                        <div class="word-translation">${randomWords[0]?.translation || 'Нет перевода'}</div>
+                        <div class="word-translation">${words[0].translation}</div>
                     </div>
                 </div>
                 <div class="card-controls">
-                    <button class="card-btn" id="nextCardBtn">
-                        <i class="fas fa-arrow-right"></i> Следующая карточка
+                    <button class="card-btn" id="flipCardBtn">
+                        <i class="fas fa-sync-alt"></i> Перевернуть
+                    </button>
+                    <button class="card-btn primary" id="nextCardBtn">
+                        <i class="fas fa-arrow-right"></i> Следующая
                     </button>
                 </div>
             </div>
         `;
 
+        // Инициализация карточек
+        const wordCard = document.querySelector('.word-card');
+        const flipBtn = document.getElementById('flipCardBtn');
+        
+        flipBtn?.addEventListener('click', () => {
+            wordCard.classList.toggle('flipped');
+        });
+
         this.updateNavActiveState('cards');
     }
 
-    // Остальные методы (showGrammarPage, showTextsPage и т.д.) остаются аналогичными
-    // ...
-}
+    showProgressPage() {
+        document.getElementById('defaultContent').innerHTML = `
+            <div class="section-title">
+                <h2>Ваш прогресс</h2>
+            </div>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value">${this.userProgress.knownWords.length}</div>
+                    <div class="stat-label">Изучено слов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${this.userProgress.completedLevels.length}</div>
+                    <div class="stat-label">Пройдено уровней</div>
+                </div>
+            </div>
+        `;
+        this.updateNavActiveState('progress');
+    }
 
-// Инициализация приложения
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new KoreanLearningApp();
-});
+    showProfilePage() {
+        document.getElementById('defaultContent').innerHTML = `
+            <div class="profile-container">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-info">
+                        <p><strong>Уровень:</strong> ${this.userProgress.currentLevel}</p>
+                        <p><strong>Изучено слов:</strong> ${this.userProgress.knownWords.length}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        this.updateNavActiveState('profile');
+    }
+
+    showSettingsPage() {
+        document.getElementById('defaultContent').innerHTML = `
+            <div class="settings-container">
+                <h2>Настройки</h2>
+                <div class="setting-item">
+                    <span>Тёмная тема</span>
+                    <label class="switch">
+                        <input type="checkbox" id="darkThemeToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        `;
+        this.updateNavActiveState('settings');
+    }
+
+    showErrorPage(message) {
+        document.getElementById('defaultContent').innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>${message}</h3>
+                <button class="card-btn" onclick="location.reload()">
+                    <i class="fas fa-redo"></i> Перезагрузить
+                </button>
+            </div>
+        `;
+    }
+}
