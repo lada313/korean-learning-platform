@@ -26,6 +26,35 @@ const games = {
             document.getElementById('defaultContent').style.display = 'block';
             window.app.showLevelsPage();
         });
+
+        // Добавляем обработчики свайпов для мобильных устройств
+        this.setupSwipeEvents(wordCard);
+    },
+
+    setupSwipeEvents(element) {
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        element.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+
+        element.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            this.handleSwipe();
+        }, false);
+
+        this.handleSwipe = () => {
+            const threshold = 50;
+            if (touchEndX < touchStartX - threshold) {
+                // Свайп влево - следующая карточка
+                document.getElementById('nextCardBtn').click();
+            }
+            if (touchEndX > touchStartX + threshold) {
+                // Свайп вправо - повторить
+                document.getElementById('repeatCardBtn').click();
+            }
+        };
     }
 };
 
@@ -50,7 +79,7 @@ class WordCardsGame {
                 <div class="card-inner">
                     <div class="card-front">
                         <div class="word-korean">${word.korean}</div>
-                        <div class="word-romanization">${word.romanization}</div>
+                        <div class="word-romanization">${word.romanization || ''}</div>
                     </div>
                     <div class="card-back">
                         <div class="word-translation">${word.translation}</div>
@@ -98,7 +127,7 @@ class WordCardsGame {
         
         wordCard.querySelector('.card-front').innerHTML = `
             <div class="word-korean">${word.korean}</div>
-            <div class="word-romanization">${word.romanization}</div>
+            <div class="word-romanization">${word.romanization || ''}</div>
         `;
         
         wordCard.querySelector('.card-back').innerHTML = `
