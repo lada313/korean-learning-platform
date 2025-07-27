@@ -36,8 +36,8 @@
             <div id="defaultContent"></div>
         </main>
         <div class="card-front">
-    <div class="word-korean">${currentWord.korean}</div>
-    <button class="sound-btn" onclick="app.playSound(event, '${currentWord.korean}')">
+    <div class="word-korean">${word?.korean || ''}</div>
+    <button class="sound-btn" onclick="app.playSound(event, '${word?.korean || ''}')">
         <i class="fas fa-volume-up"></i>
     </button>
 </div>
@@ -61,7 +61,9 @@
             </a>
         </footer>
     </div>
-
+<div class="swipe-hint">
+    <i class="fas fa-arrow-left"></i> Свайп для переключения <i class="fas fa-arrow-right"></i>
+</div>
 <script src="js/games.js"></script>
     <script src="js/script.js"></script>
   <script>
