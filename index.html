@@ -60,8 +60,16 @@
     <script src="js/script.js"></script>
     <script src="js/games.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            window.app = new KoreanLearningApp();
+        // Убедимся, что DOM полностью загружен
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем, что класс определен
+            if (typeof KoreanLearningApp !== 'undefined') {
+                window.app = new KoreanLearningApp();
+            } else {
+                console.error('KoreanLearningApp is not defined. Check:');
+                console.error('1. Файл script.js загружен правильно');
+                console.error('2. Класс определен с правильным именем');
+            }
         });
     </script>
 </body>
