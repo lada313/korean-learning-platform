@@ -1,166 +1,159 @@
-// ==================== ОСНОВНОЙ ОБЪЕКТ ПРИЛОЖЕНИЯ ====================
-const KoreanApp = {
-    // Глобальные переменные
-    userProgress: {
+// Главный объект приложения
+const KoreanLearningApp = (function() {
+    // Приватные переменные
+    const userProgress = {
         knownWords: [],
         difficultWords: [],
         completedLevels: [],
         currentLevel: 1,
         cardIntervals: {}
-    },
-    allWords: [],
-    allLevels: [],
-    allGrammar: [],
-    allTexts: [],
-    currentCardIndex: 0,
-    flashcards: [],
+    };
+    
+    let allWords = [];
+    let allLevels = [];
+    let allGrammar = [];
+    let allTexts = [];
+    let currentCardIndex = 0;
+    let flashcards = [];
 
-    // ==================== ИНИЦИАЛИЗАЦИЯ ====================
-    init: function() {
-        this.loadUserProgress();
-        this.loadData().then(() => {
-            this.showHomePage();
-            this.setupEventListeners();
-        }).catch(error => {
-            console.error("Ошибка загрузки данных:", error);
-            this.showErrorPage();
-        });
-    },
+    // Публичные методы
+    return {
+        init: function() {
+            this.loadUserProgress();
+            this.loadData().then(() => {
+                this.bindEvents();
+                this.showHomePage();
+            }).catch(error => {
+                console.error("App initialization failed:", error);
+                this.showErrorPage();
+            });
+        },
 
-    // ==================== ЗАГРУЗКА ДАННЫХ ====================
-    loadData: async function() {
-        try {
-            // Загрузка обязательных данных
-            const wordsPromise = fetch('data/words.json')
-                .then(response => {
-                    if (!response.ok) throw new Error("Ошибка загрузки words.json");
-                    return response.json();
-                })
-                .catch(() => {
-                    return [{
-                        id: 1,
-                        korean: "안녕하세요",
-                        romanization: "annyeonghaseyo",
-                        translation: "Здравствуйте"
-                    }];
-                });
-
-            const levelsPromise = fetch('data/levels.json')
-                .then(response => {
-                    if (!response.ok) throw new Error("Ошибка загрузки levels.json");
-                    return response.json();
-                })
-                .catch(() => {
-                    return [{
-                        id: 1,
-                        title: "1 Уровень",
-                        words: [1],
-                        locked: false
-                    }];
-                });
-
-            const [words, levels] = await Promise.all([wordsPromise, levelsPromise]);
-            this.allWords = words;
-            this.allLevels = levels;
-
-            // Загрузка дополнительных данных (не обязательно)
+        loadData: async function() {
             try {
-                const grammarResponse = await fetch('data/grammar.json');
-                if (grammarResponse.ok) this.allGrammar = await grammarResponse.json();
-            } catch (e) {
-                console.warn("Не удалось загрузить grammar.json:", e);
+                // Основные данные
+                const wordsResponse = await fetch('data/words.json');
+                allWords = await wordsResponse.json();
+                
+                const levelsResponse = await fetch('data/levels.json');
+                allLevels = await levelsResponse.json();
+
+                // Дополнительные данные (не критично)
+                try {
+                    const grammarResponse = await fetch('data/grammar.json');
+                    allGrammar = await grammarResponse.json();
+                } catch (e) {
+                    console.warn("Grammar load warning:", e);
+                }
+
+                try {
+                    const textsResponse = await fetch('data/texts.json');
+                    allTexts = await textsResponse.json();
+                } catch (e) {
+                    console.warn("Texts load warning:", e);
+                }
+
+            } catch (error) {
+                console.error("Data load error:", error);
+                // Fallback данные
+                allWords = allWords.length ? allWords : [{
+                    id: 1,
+                    korean: "안녕하세요",
+                    romanization: "annyeonghaseyo",
+                    translation: "Здравствуйте"
+                }];
+                
+                allLevels = allLevels.length ? allLevels : [{
+                    id: 1,
+                    title: "1 Уровень",
+                    words: [1],
+                    locked: false
+                }];
+                
+                throw error;
             }
+        },
 
-            try {
-                const textsResponse = await fetch('data/texts.json');
-                if (textsResponse.ok) this.allTexts = await textsResponse.json();
-            } catch (e) {
-                console.warn("Не удалось загрузить texts.json:", e);
+        loadUserProgress: function() {
+            const saved = localStorage.getItem('koreanProgress');
+            if (saved) {
+                try {
+                    Object.assign(userProgress, JSON.parse(saved));
+                } catch (e) {
+                    console.error("Progress load error:", e);
+                }
             }
+        },
 
-        } catch (error) {
-            console.error("Критическая ошибка загрузки данных:", error);
-            throw error;
-        }
-    },
+        saveUserProgress: function() {
+            localStorage.setItem('koreanProgress', JSON.stringify(userProgress));
+        },
 
-    // ==================== УПРАВЛЕНИЕ ПРОГРЕССОМ ====================
-    loadUserProgress: function() {
-        const saved = localStorage.getItem('koreanProgress');
-        if (saved) {
-            try {
-                this.userProgress = JSON.parse(saved);
-            } catch (e) {
-                console.error("Ошибка загрузки прогресса:", e);
-            }
-        }
-    },
-
-    saveUserProgress: function() {
-        localStorage.setItem('koreanProgress', JSON.stringify(this.userProgress));
-    },
-
-    // ==================== ОСНОВНЫЕ СТРАНИЦЫ ====================
-    showHomePage: function() {
-        document.getElementById('mainContent').innerHTML = `
-            <div class="modules-grid">
-                <div class="module-card" id="levelsBtn">
-                    <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
-                    <h2>Уровни</h2>
-                    <p>Пошаговое изучение</p>
+        showHomePage: function() {
+            document.getElementById('mainContent').innerHTML = `
+                <div class="modules-grid">
+                    <div class="module-card" data-page="levels">
+                        <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
+                        <h2>Уровни</h2>
+                        <p>Пошаговое изучение</p>
+                    </div>
+                    <!-- Другие кнопки -->
                 </div>
-                <!-- Другие кнопки -->
-            </div>
-        `;
-    },
+            `;
+        },
 
-    showLevelsPage: function() {
-        const levelsHtml = this.allLevels.map(level => `
-            <div class="level-card" data-level="${level.id}">
-                <h3>${level.title}</h3>
-                <p>${level.description || ''}</p>
-            </div>
-        `).join('');
+        showLevelsPage: function() {
+            const levelsHtml = allLevels.map(level => `
+                <div class="level-card" data-level="${level.id}">
+                    <h3>${level.title}</h3>
+                    ${level.description ? `<p>${level.description}</p>` : ''}
+                </div>
+            `).join('');
 
-        document.getElementById('mainContent').innerHTML = `
-            <div class="levels-container">
-                ${levelsHtml}
-            </div>
-        `;
-    },
+            document.getElementById('mainContent').innerHTML = `
+                <div class="section-title">
+                    <h2>Уровни изучения</h2>
+                    <button class="back-btn" data-page="home">На главную</button>
+                </div>
+                <div class="levels-container">
+                    ${levelsHtml}
+                </div>
+            `;
+        },
 
-    // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
-    setupEventListeners: function() {
-        // Делегирование событий
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('#levelsBtn')) {
-                this.showLevelsPage();
-            }
-            
-            if (e.target.closest('.level-card')) {
-                const levelId = parseInt(e.target.closest('.level-card').dataset.level);
-                this.startLevel(levelId);
-            }
-        });
-    },
+        bindEvents: function() {
+            // Делегирование событий
+            document.addEventListener('click', (e) => {
+                const card = e.target.closest('[data-page]');
+                if (card) {
+                    const page = card.dataset.page;
+                    this[`show${page.charAt(0).toUpperCase() + page.slice(1)}Page`]();
+                }
 
-    // ==================== ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ====================
-    showErrorPage: function(message = "Произошла ошибка") {
-        document.getElementById('mainContent').innerHTML = `
-            <div class="error-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>${message}</h3>
-                <button onclick="location.reload()">Перезагрузить</button>
-            </div>
-        `;
-    }
-};
+                const levelCard = e.target.closest('.level-card');
+                if (levelCard) {
+                    this.startLevel(parseInt(levelCard.dataset.level));
+                }
+            });
+        },
 
-// Инициализация приложения после загрузки страницы
+        showErrorPage: function(message = "Произошла ошибка") {
+            document.getElementById('mainContent').innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>${message}</h3>
+                    <button onclick="location.reload()">Перезагрузить</button>
+                </div>
+            `;
+        }
+    };
+})();
+
+// Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', () => {
-    KoreanApp.init();
+    KoreanLearningApp.init();
 });
 
-// Экспорт функций в глобальную область видимости
-window.showLevelsPage = () => KoreanApp.showLevelsPage();
-window.showHomePage = () => KoreanApp.showHomePage();
+// Глобальный экспорт только необходимых функций
+window.showLevelsPage = () => KoreanLearningApp.showLevelsPage();
+window.showHomePage = () => KoreanLearningApp.showHomePage();
