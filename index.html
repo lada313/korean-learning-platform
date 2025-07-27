@@ -35,6 +35,12 @@
             <div id="gameContainer" style="display: none;"></div>
             <div id="defaultContent"></div>
         </main>
+        <div class="card-front">
+    <div class="word-korean">${currentWord.korean}</div>
+    <button class="sound-btn" onclick="app.playSound(event, '${currentWord.korean}')">
+        <i class="fas fa-volume-up"></i>
+    </button>
+</div>
 
         <footer class="bottom-nav">
             <a href="#" class="nav-item active" data-page="home">
