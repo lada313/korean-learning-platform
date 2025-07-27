@@ -461,6 +461,124 @@ body {
 .text-card .speak-btn i {
     margin-right: 8px;
 }
+/* ==================== ИГРОВЫЕ ЭЛЕМЕНТЫ ==================== */
+.level-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.step {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.step.active {
+    background-color: var(--primary);
+    color: white;
+}
+
+.step.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.step i {
+    font-size: 1.2rem;
+}
+
+.word-game-container {
+    text-align: center;
+    padding: 20px;
+}
+
+.game-word {
+    font-size: 2rem;
+    margin: 20px 0;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.game-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.game-option {
+    padding: 15px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.game-option:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.game-feedback {
+    margin: 20px 0;
+    min-height: 50px;
+}
+
+.correct {
+    color: var(--success);
+    font-weight: bold;
+}
+
+.incorrect {
+    color: var(--error);
+}
+
+.test-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.test-progress {
+    color: var(--text-light);
+    margin-bottom: 15px;
+}
+
+.test-question {
+    font-size: 1.5rem;
+    margin: 20px 0;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.test-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.test-option {
+    padding: 15px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+}
+
+.test-option:hover {
+    border-color: var(--primary);
+}
 /* ==================== ПРОФИЛЬ ==================== */
 .profile-container {
     display: flex;
