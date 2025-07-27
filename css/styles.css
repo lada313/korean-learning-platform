@@ -747,3 +747,49 @@ input:checked + .slider:before {
 .btn:active {
     transform: translateY(1px);
 }
+/* Контейнер для кнопки звука */
+.sound-btn-container {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Адаптация кнопки звука для мобильных */
+@media (max-width: 600px) {
+    .sound-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+    
+    /* Улучшение отзывчивости свайпов */
+    .word-card {
+        touch-action: pan-y;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    
+    .swipe-hint {
+        bottom: 60px;
+        font-size: 0.7rem;
+    }
+}
+
+/* Анимация для свайпа */
+@keyframes swipeLeft {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+@keyframes swipeRight {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(100%); }
+}
+
+.swipe-left {
+    animation: swipeLeft 0.3s forwards;
+}
+
+.swipe-right {
+    animation: swipeRight 0.3s forwards;
+}
