@@ -289,22 +289,38 @@ class KoreanLearningApp {
     }
 
     updateCard(word) {
-        const wordCard = document.getElementById('wordCard');
-        const front = wordCard.querySelector('.card-front');
-        const back = wordCard.querySelector('.card-back');
-        const progress = wordCard.querySelector('.progress');
-        
-        front.innerHTML = `
+    const wordCard = document.getElementById('wordCard');
+    const front = wordCard.querySelector('.card-front');
+    const back = wordCard.querySelector('.card-back');
+    const progress = wordCard.querySelector('.progress');
+    
+    const example = word.examples ? word.examples[0] : null;
+    
+    front.innerHTML = `
+        <div class="word-header">
             <div class="word-korean">${word.korean}</div>
-            <div class="word-romanization">${word.romanization}</div>
-        `;
-        
-        back.innerHTML = `
-            <div class="word-translation">${word.translation}</div>
-        `;
-        
-        progress.textContent = `${this.currentCardIndex + 1}/${this.currentSessionWords.length}`;
-    }
+            <button class="sound-btn" onclick="app.playSound('${word.korean}')">
+                <i class="fas fa-volume-up"></i>
+            </button>
+        </div>
+        <div class="word-romanization">${word.romanization}</div>
+    `;
+    
+    back.innerHTML = `
+        <div class="word-translation">${word.translation}</div>
+        ${example ? `
+        <div class="word-example">
+            <div class="example-korean">${example.korean}</div>
+            <div class="example-translation">${example.translation}</div>
+            <button class="sound-btn" onclick="app.playSound('${example.korean}')">
+                <i class="fas fa-volume-up"></i>
+            </button>
+        </div>
+        ` : ''}
+    `;
+    
+    progress.textContent = `${this.currentCardIndex + 1}/${this.currentSessionWords.length}`;
+}
 
     showProgressPage() {
         document.getElementById('defaultContent').innerHTML = `
