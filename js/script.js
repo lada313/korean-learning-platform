@@ -601,7 +601,237 @@ function showWordCard(wordId) {
         showErrorPage();
     }
 }
+// ==================== УРОВНИ И ИГРОВОЙ ПРОЦЕСС ====================
 
+function startLevel(levelId) {
+    try {
+        const level = allLevels.find(l => l.id === levelId);
+        if (!level || (level.locked && !userProgress.completedLevels.includes(levelId - 1))) {
+            return;
+        }
+
+        // Создаем массив слов для уровня
+        const levelWords = level.words.map(id => allWords.find(w => w.id === id)).filter(w => w);
+        
+        // Отображаем страницу уровня
+        document.getElementById('mainContent').innerHTML = `
+            <div class="section-title">
+                <h2>${level.title}</h2>
+                <div class="view-all" onclick="showLevelsPage()">Назад</div>
+            </div>
+            <div class="level-description">
+                <p>${level.description}</p>
+            </div>
+            <div class="level-steps">
+                <div class="step active" onclick="startWordLearning(${levelId}, 0)">
+                    <i class="fas fa-book"></i>
+                    <span>Изучение слов</span>
+                </div>
+                <div class="step ${levelWords.length < 5 ? 'disabled' : ''}" 
+                     onclick="if(${levelWords.length >= 5}) startWordGame(${levelId})">
+                    <i class="fas fa-gamepad"></i>
+                    <span>Игра со словами</span>
+                </div>
+                <div class="step ${level.grammar.length === 0 ? 'disabled' : ''}" 
+                     onclick="if(${level.grammar.length > 0}) startGrammarLearning(${levelId})">
+                    <i class="fas fa-language"></i>
+                    <span>Грамматика</span>
+                </div>
+                <div class="step" onclick="startLevelTest(${levelId})">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>Тест уровня</span>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        console.error("Ошибка запуска уровня:", e);
+        showErrorPage();
+    }
+}
+
+function startWordLearning(levelId, wordIndex) {
+    const level = allLevels.find(l => l.id === levelId);
+    const words = level.words.map(id => allWords.find(w => w.id === id)).filter(w => w);
+    const word = words[wordIndex];
+    
+    if (!word) return;
+
+    document.getElementById('mainContent').innerHTML = `
+        <div class="word-learning-container">
+            <div class="word-card">
+                <div class="word-korean">${word.korean}</div>
+                <div class="word-romanization">${word.romanization}</div>
+                <button class="speak-btn" onclick="speakWord(event, '${word.korean}')">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            </div>
+            
+            <div class="word-translation">${word.translation}</div>
+            
+            ${word.examples?.map(ex => `
+                <div class="example-container">
+                    <div class="example-korean">${ex.korean}</div>
+                    <div class="example-translation">${ex.translation}</div>
+                    <button class="speak-example-btn" onclick="speakWord(event, '${ex.korean}')">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+            `).join('') || ''}
+            
+            <div class="learning-controls">
+                <button class="card-btn" onclick="startWordLearning(${levelId}, ${wordIndex - 1})" 
+                        ${wordIndex === 0 ? 'disabled' : ''}>
+                    <i class="fas fa-arrow-left"></i> Назад
+                </button>
+                <button class="card-btn primary" onclick="startWordLearning(${levelId}, ${wordIndex + 1})" 
+                        ${wordIndex === words.length - 1 ? 'disabled' : ''}>
+                    Вперед <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            
+            <button class="card-btn" onclick="startLevel(${levelId})">
+                <i class="fas fa-arrow-left"></i> Вернуться к уровню
+            </button>
+        </div>
+    `;
+}
+
+function startWordGame(levelId) {
+    const level = allLevels.find(l => l.id === levelId);
+    const words = level.words.map(id => allWords.find(w => w.id === id)).filter(w => w);
+    
+    // Выбираем 5 случайных слов для игры
+    const gameWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 5);
+    
+    document.getElementById('mainContent').innerHTML = `
+        <div class="word-game-container">
+            <h3>Найдите правильный перевод</h3>
+            
+            <div class="game-word">${gameWords[0].korean}</div>
+            
+            <div class="game-options">
+                ${gameWords.sort(() => 0.5 - Math.random()).map(word => `
+                    <button class="game-option" onclick="checkGameAnswer(${levelId}, '${word.korean}', '${gameWords[0].korean}')">
+                        ${word.translation}
+                    </button>
+                `).join('')}
+            </div>
+            
+            <div class="game-feedback" id="gameFeedback"></div>
+        </div>
+    `;
+}
+
+function checkGameAnswer(levelId, selectedWord, correctWord) {
+    const feedback = document.getElementById('gameFeedback');
+    if (selectedWord === correctWord) {
+        feedback.innerHTML = '<div class="correct">Правильно! <i class="fas fa-check"></i></div>';
+        setTimeout(() => startWordGame(levelId), 1500); // Новая игра через 1.5 сек
+    } else {
+        feedback.innerHTML = '<div class="incorrect">Неправильно, попробуйте еще <i class="fas fa-redo"></i></div>';
+    }
+}
+
+function startGrammarLearning(levelId) {
+    const level = allLevels.find(l => l.id === levelId);
+    const grammar = allGrammar.find(g => g.id === level.grammar[0]);
+    
+    if (!grammar) return;
+
+    document.getElementById('mainContent').innerHTML = `
+        <div class="grammar-learning-container">
+            <h3>${grammar.title}</h3>
+            <p>${grammar.description}</p>
+            
+            ${grammar.examples?.map(ex => `
+                <div class="example-container">
+                    <div class="example-korean">${ex.korean}</div>
+                    <div class="example-translation">${ex.translation}</div>
+                </div>
+            `).join('') || ''}
+            
+            <button class="card-btn" onclick="startGrammarPractice(${levelId})">
+                <i class="fas fa-pen"></i> Практика
+            </button>
+            
+            <button class="card-btn" onclick="startLevel(${levelId})">
+                <i class="fas fa-arrow-left"></i> Вернуться к уровню
+            </button>
+        </div>
+    `;
+}
+
+function startLevelTest(levelId) {
+    const level = allLevels.find(l => l.id === levelId);
+    const words = level.words.map(id => allWords.find(w => w.id === id)).filter(w => w);
+    
+    // Создаем тест из 5 вопросов
+    const testQuestions = [
+        {
+            type: "word",
+            question: words[0].korean,
+            options: [
+                words[0].translation,
+                words[1].translation,
+                words[2].translation
+            ].sort(() => 0.5 - Math.random()),
+            answer: words[0].translation
+        },
+        // Добавьте больше вопросов...
+    ];
+
+    renderTestQuestion(levelId, testQuestions, 0);
+}
+
+function renderTestQuestion(levelId, questions, index) {
+    if (index >= questions.length) {
+        // Тест завершен
+        completeLevel(levelId);
+        return;
+    }
+
+    const q = questions[index];
+    
+    document.getElementById('mainContent').innerHTML = `
+        <div class="test-container">
+            <div class="test-progress">Вопрос ${index + 1} из ${questions.length}</div>
+            
+            <div class="test-question">${q.question}</div>
+            
+            <div class="test-options">
+                ${q.options.map(opt => `
+                    <button class="test-option" onclick="checkTestAnswer(${levelId}, ${JSON.stringify(questions)}, ${index}, '${opt}', '${q.answer}')">
+                        ${opt}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function checkTestAnswer(levelId, questions, index, selected, correct) {
+    if (selected === correct) {
+        renderTestQuestion(levelId, questions, index + 1);
+    } else {
+        alert("Неправильно! Попробуйте еще раз.");
+    }
+}
+
+function completeLevel(levelId) {
+    if (!userProgress.completedLevels.includes(levelId)) {
+        userProgress.completedLevels.push(levelId);
+        
+        // Разблокируем следующий уровень
+        const nextLevel = allLevels.find(l => l.id === levelId + 1);
+        if (nextLevel) {
+            nextLevel.locked = false;
+        }
+        
+        saveUserProgress();
+    }
+    
+    showLevelsPage();
+}
 // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 function updateActiveNav(section) {
     try {
