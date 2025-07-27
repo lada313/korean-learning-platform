@@ -1,74 +1,205 @@
-const games = {
-    currentGame: null,
-  
-    startCardGame(words) {
-        this.currentGame = new WordCardsGame(words);
-        document.getElementById('defaultContent').style.display = 'none';
-        document.getElementById('gameContainer').style.display = 'block';
-        document.getElementById('gameContainer').innerHTML = this.currentGame.renderCard();
-        
-        const wordCard = document.getElementById('wordCard');
-        wordCard.addEventListener('click', (e) => {
-            if (e.target.closest('.card-controls')) return;
-            wordCard.classList.toggle('flipped');
-        });
-        
-        document.getElementById('nextCardBtn').addEventListener('click', () => {
-            this.currentGame.nextCard();
-        });
-        
-        document.getElementById('repeatCardBtn').addEventListener('click', () => {
-            this.currentGame.repeatCard();
-        });
-        
-        document.getElementById('exitCardsBtn').addEventListener('click', () => {
-            document.getElementById('gameContainer').style.display = 'none';
-            document.getElementById('defaultContent').style.display = 'block';
-            window.app.showLevelsPage();
-        });
-
-        // Добавляем обработчики свайпов для мобильных устройств
-        this.setupSwipeEvents(wordCard);
-    },
-
-    setupSwipeEvents(element) {
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        element.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, false);
-
-        element.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            this.handleSwipe();
-        }, false);
-
-        this.handleSwipe = () => {
-            const threshold = 50;
-            if (touchEndX < touchStartX - threshold) {
-                // Свайп влево - следующая карточка
-                document.getElementById('nextCardBtn').click();
-            }
-            if (touchEndX > touchStartX + threshold) {
-                // Свайп вправо - повторить
-                document.getElementById('repeatCardBtn').click();
-            }
+class KoreanLearningApp {
+    constructor() {
+        this.userProgress = {
+            knownWords: [],
+            difficultWords: [],
+            completedLevels: [],
+            currentLevel: 1,
+            cardIntervals: {}
         };
-    }
-};
-
-class WordCardsGame {
-    constructor(words) {
-        this.words = words;
-        this.currentIndex = 0;
-        this.wordsToRepeat = [];
-    }
-
-    renderCard() {
-        const word = this.words[this.currentIndex];
         
-        return `
+        this.allWords = [];
+        this.allLevels = [];
+        this.currentWords = [];
+        this.currentCardIndex = 0;
+        this.currentSessionWords = [];
+        this.wordsToRepeat = [];
+        this.synth = window.speechSynthesis;
+        this.voices = [];
+        this.touchStartX = 0;
+        this.touchEndX = 0;
+
+        this.init();
+    }
+
+    async init() {
+        await this.loadData();
+        this.loadVoices();
+        this.bindEvents();
+        this.showHomePage();
+        
+        setTimeout(() => this.loadVoices(), 1000);
+    }
+
+    loadVoices() {
+        this.voices = this.synth.getVoices().filter(voice => voice.lang.includes('ko'));
+        if (this.voices.length === 0) {
+            console.warn('Korean voices not available');
+        }
+    }
+
+    async loadData() {
+        try {
+            const [wordsResponse, levelsResponse, grammarResponse] = await Promise.all([
+                fetch('./data/words.json'),
+                fetch('./data/levels.json'),
+                fetch('./data/grammar.json')
+            ]);
+            
+            this.allWords = await wordsResponse.json();
+            this.allLevels = await levelsResponse.json();
+            this.grammarRules = await grammarResponse.json();
+        } catch (error) {
+            console.error("Ошибка загрузки:", error);
+            this.showErrorPage("Ошибка загрузки данных");
+        }
+    }
+
+    bindEvents() {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = item.dataset.page;
+                this.showPage(page);
+            });
+        });
+
+        document.getElementById('profileBtn')?.addEventListener('click', () => {
+            this.showPage('profile');
+        });
+    }
+
+    showPage(page) {
+        this[`show${page.charAt(0).toUpperCase() + page.slice(1)}Page`]();
+    }
+
+    updateNavActiveState(activePage) {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.page === activePage);
+        });
+    }
+
+    showHomePage() {
+        document.getElementById('defaultContent').innerHTML = `
+            <div class="modules-grid">
+                <div class="module-card" data-page="levels">
+                    <div class="card-icon levels"><i class="fas fa-layer-group"></i></div>
+                    <h2>Уровни</h2>
+                    <p>Пошаговое изучение от начального до продвинутого</p>
+                </div>
+
+                <div class="module-card" data-page="cards">
+                    <div class="card-icon cards"><i class="far fa-sticky-note"></i></div>
+                    <h2>Карточки</h2>
+                    <p>Запоминание слов с интервальным повторением</p>
+                </div>
+
+                <div class="module-card" data-page="grammar">
+                    <div class="card-icon grammar"><i class="fas fa-book-open"></i></div>
+                    <h2>Грамматика</h2>
+                    <p>Изучение правил и языковых конструкций</p>
+                </div>
+
+                <div class="module-card" data-page="texts">
+                    <div class="card-icon text"><i class="fas fa-align-left"></i></div>
+                    <h2>Текст и перевод</h2>
+                    <p>Чтение и анализ текстов с переводом</p>
+                </div>
+            </div>
+
+            <div class="repetition-section">
+                <h2>Повторение</h2>
+                <p>Повторяйте изученный материал для закрепления знаний</p>
+                <button class="card-btn" id="startRepetitionBtn">
+                    <i class="fas fa-redo"></i> Начать повторение
+                </button>
+            </div>
+        `;
+
+        document.querySelectorAll('.module-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showPage(card.dataset.page);
+            });
+        });
+
+        document.getElementById('startRepetitionBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showCardsPage();
+        });
+
+        this.updateNavActiveState('home');
+    }
+
+    showLevelsPage() {
+        const levelsHtml = this.allLevels.map(level => `
+            <div class="level-card" data-level="${level.id}">
+                <h3>${level.title}</h3>
+                <p>Слов: ${level.words.length}</p>
+                <div class="level-progress">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('defaultContent').innerHTML = `
+            <div class="section-title">
+                <h2>Уровни изучения</h2>
+            </div>
+            <div class="levels-container">
+                ${levelsHtml}
+            </div>
+        `;
+
+        document.querySelectorAll('.level-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+                const levelId = parseInt(card.dataset.level);
+                this.startLevel(levelId);
+            });
+        });
+
+        this.updateNavActiveState('levels');
+    }
+
+    startLevel(levelId) {
+        const level = this.allLevels.find(l => l.id === levelId);
+        if (!level) return;
+
+        this.currentWords = level.words.map(wordId => 
+            this.allWords.find(word => word.id === wordId)
+        ).filter(Boolean);
+
+        if (this.currentWords.length > 0) {
+            this.showCardsPage(true);
+        } else {
+            alert('Нет слов для этого уровня');
+        }
+    }
+
+    showCardsPage(fromLevel = false) {
+        const words = fromLevel ? this.currentWords : 
+            [...this.allWords].sort(() => 0.5 - Math.random()).slice(0, 10);
+
+        if (words.length === 0) {
+            document.getElementById('defaultContent').innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h3>Нет доступных слов</h3>
+                    <p>Попробуйте выбрать другой уровень</p>
+                </div>
+            `;
+            return;
+        }
+
+        this.currentCardIndex = 0;
+        this.currentSessionWords = [...words];
+        this.wordsToRepeat = [];
+
+        const currentWord = words[0];
+        const example = currentWord.examples ? currentWord.examples[0] : null;
+
+        document.getElementById('defaultContent').innerHTML = `
             <div class="section-title">
                 <h2>Карточки слов</h2>
                 <button class="card-btn" id="exitCardsBtn">
@@ -78,11 +209,25 @@ class WordCardsGame {
             <div class="word-card" id="wordCard">
                 <div class="card-inner">
                     <div class="card-front">
-                        <div class="word-korean">${word.korean}</div>
-                        <div class="word-romanization">${word.romanization || ''}</div>
+                        <div class="word-korean">${currentWord.korean}</div>
+                        <button class="sound-btn sound-btn-front" onclick="app.playSound(event, '${currentWord.korean}')">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
                     </div>
                     <div class="card-back">
-                        <div class="word-translation">${word.translation}</div>
+                        <div class="word-translation">${currentWord.translation}</div>
+                        ${example ? `
+                        <div class="word-example">
+                            <div class="example-header">
+                                <span>Пример:</span>
+                                <button class="sound-btn" onclick="app.playSound(event, '${example.korean}')">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            </div>
+                            <div class="example-korean">${example.korean}</div>
+                            <div class="example-translation">${example.translation}</div>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
                 <div class="card-controls">
@@ -93,50 +238,202 @@ class WordCardsGame {
                         <i class="fas fa-arrow-right"></i> Следующая
                     </button>
                 </div>
-                <div class="progress">${this.currentIndex + 1}/${this.words.length}</div>
+                <div class="progress">1/${words.length}</div>
             </div>
         `;
+
+        const wordCard = document.getElementById('wordCard');
+        const nextBtn = document.getElementById('nextCardBtn');
+        const repeatBtn = document.getElementById('repeatCardBtn');
+        const exitBtn = document.getElementById('exitCardsBtn');
+
+        // Обработчики свайпа
+        wordCard.addEventListener('touchstart', (e) => {
+            this.touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        wordCard.addEventListener('touchend', (e) => {
+            this.touchEndX = e.changedTouches[0].screenX;
+            this.handleSwipe();
+        }, {passive: true});
+
+        wordCard.addEventListener('click', (e) => {
+            if (e.target.closest('.sound-btn') || e.target.closest('.card-controls')) return;
+            wordCard.classList.toggle('flipped');
+        });
+
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.currentCardIndex++;
+            
+            if (this.currentCardIndex < this.currentSessionWords.length) {
+                const word = this.currentSessionWords[this.currentCardIndex];
+                this.updateCard(word);
+                wordCard.classList.remove('flipped');
+            } else if (this.wordsToRepeat.length > 0) {
+                this.currentSessionWords = [...this.wordsToRepeat];
+                this.wordsToRepeat = [];
+                this.currentCardIndex = 0;
+                const word = this.currentSessionWords[0];
+                this.updateCard(word);
+                wordCard.classList.remove('flipped');
+            } else {
+                this.showLevelsPage();
+            }
+        });
+
+        repeatBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const currentWord = this.currentSessionWords[this.currentCardIndex];
+            this.wordsToRepeat.push(currentWord);
+            wordCard.classList.remove('flipped');
+        });
+
+        exitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showLevelsPage();
+        });
+
+        this.updateNavActiveState('cards');
     }
 
-    nextCard() {
-        this.currentIndex++;
-        
-        if (this.currentIndex < this.words.length) {
-            this.updateCard();
-        } else if (this.wordsToRepeat.length > 0) {
-            this.words = [...this.wordsToRepeat];
-            this.wordsToRepeat = [];
-            this.currentIndex = 0;
-            this.updateCard();
-        } else {
-            document.getElementById('gameContainer').style.display = 'none';
-            document.getElementById('defaultContent').style.display = 'block';
-            window.app.showLevelsPage();
+    handleSwipe() {
+        const diff = this.touchStartX - this.touchEndX;
+        const swipeThreshold = 50;
+
+        if (diff > swipeThreshold) {
+            document.getElementById('nextCardBtn').click();
+        } else if (diff < -swipeThreshold) {
+            this.currentCardIndex = Math.max(0, this.currentCardIndex - 1);
+            const word = this.currentSessionWords[this.currentCardIndex];
+            this.updateCard(word);
+            document.getElementById('wordCard').classList.remove('flipped');
         }
     }
 
-    repeatCard() {
-        const currentWord = this.words[this.currentIndex];
-        this.wordsToRepeat.push(currentWord);
-        document.getElementById('wordCard').classList.remove('flipped');
+    updateCard(word) {
+        const wordCard = document.getElementById('wordCard');
+        const front = wordCard.querySelector('.card-front');
+        const back = wordCard.querySelector('.card-back');
+        const progress = wordCard.querySelector('.progress');
+        
+        const example = word.examples ? word.examples[0] : null;
+        
+        front.innerHTML = `
+            <div class="word-korean">${word.korean}</div>
+            <button class="sound-btn sound-btn-front" onclick="app.playSound(event, '${word.korean}')">
+                <i class="fas fa-volume-up"></i>
+            </button>
+        `;
+        
+        back.innerHTML = `
+            <div class="word-translation">${word.translation}</div>
+            ${example ? `
+            <div class="word-example">
+                <div class="example-header">
+                    <span>Пример:</span>
+                    <button class="sound-btn" onclick="app.playSound(event, '${example.korean}')">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+                <div class="example-korean">${example.korean}</div>
+                <div class="example-translation">${example.translation}</div>
+            </div>
+            ` : ''}
+        `;
+        
+        progress.textContent = `${this.currentCardIndex + 1}/${this.currentSessionWords.length}`;
     }
 
-    updateCard() {
-        const word = this.words[this.currentIndex];
-        const wordCard = document.getElementById('wordCard');
+    playSound(event, text) {
+        event.stopPropagation();
+        event.preventDefault();
         
-        wordCard.querySelector('.card-front').innerHTML = `
-            <div class="word-korean">${word.korean}</div>
-            <div class="word-romanization">${word.romanization || ''}</div>
+        if (this.synth.speaking) {
+            this.synth.cancel();
+            return;
+        }
+
+        if (this.voices.length === 0) {
+            this.loadVoices();
+        }
+
+        if (this.voices.length > 0) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.voice = this.voices[0];
+            utterance.lang = 'ko-KR';
+            this.synth.speak(utterance);
+        } else {
+            console.log('Korean voice not available');
+        }
+    }
+
+    showProgressPage() {
+        document.getElementById('defaultContent').innerHTML = `
+            <div class="section-title">
+                <h2>Ваш прогресс</h2>
+            </div>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value">${this.userProgress.knownWords.length}</div>
+                    <div class="stat-label">Изучено слов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${this.userProgress.completedLevels.length}</div>
+                    <div class="stat-label">Пройдено уровней</div>
+                </div>
+            </div>
         `;
-        
-        wordCard.querySelector('.card-back').innerHTML = `
-            <div class="word-translation">${word.translation}</div>
+        this.updateNavActiveState('progress');
+    }
+
+    showProfilePage() {
+        document.getElementById('defaultContent').innerHTML = `
+            <div class="profile-container">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-info">
+                        <p><strong>Уровень:</strong> ${this.userProgress.currentLevel}</p>
+                        <p><strong>Изучено слов:</strong> ${this.userProgress.knownWords.length}</p>
+                    </div>
+                </div>
+            </div>
         `;
-        
-        wordCard.querySelector('.progress').textContent = 
-            `${this.currentIndex + 1}/${this.words.length}`;
-        
-        wordCard.classList.remove('flipped');
+        this.updateNavActiveState('profile');
+    }
+
+    showSettingsPage() {
+        document.getElementById('defaultContent').innerHTML = `
+            <div class="settings-container">
+                <h2>Настройки</h2>
+                <div class="setting-item">
+                    <span>Тёмная тема</span>
+                    <label class="switch">
+                        <input type="checkbox" id="darkThemeToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        `;
+        this.updateNavActiveState('settings');
+    }
+
+    showErrorPage(message) {
+        document.getElementById('defaultContent').innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>${message}</h3>
+                <button class="card-btn" onclick="location.reload()">
+                    <i class="fas fa-redo"></i> Перезагрузить
+                </button>
+            </div>
+        `;
     }
 }
+
+// Инициализация приложения
+document.addEventListener('DOMContentLoaded', () => {
+    window.app = new KoreanLearningApp();
+});
