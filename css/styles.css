@@ -719,10 +719,22 @@ input:checked + .slider:before {
 }
 
 /* ==================== АДАПТИВНОСТЬ ==================== */
+
 @media (max-width: 600px) {
     .word-card {
         height: 300px;
     }
+        .sound-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+        bottom: 15px;
+    }
+    
+    .card-back .sound-btn {
+        font-size: 0.9rem;
+    }
+}
     
     .word-korean {
         font-size: 2rem;
