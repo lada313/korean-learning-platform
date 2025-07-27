@@ -34,12 +34,12 @@ class KoreanLearningApp {
         }
     }
 
-    async loadData() {
+async loadData() {
         try {
             const [wordsResponse, levelsResponse, grammarResponse] = await Promise.all([
-                fetch('./data/words.json'),
-                fetch('./data/levels.json'),
-                fetch('./data/grammar.json')
+                fetch('data/words.json'),  // Обновленный путь
+                fetch('data/levels.json'), // Обновленный путь
+                fetch('data/grammar.json') // Обновленный путь
             ]);
             
             this.allWords = await wordsResponse.json();
