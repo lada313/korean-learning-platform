@@ -4,6 +4,8 @@ const games = {
     startCardGame(words) {
         this.currentGame = new WordCardsGame(words);
         document.getElementById('gameContainer').innerHTML = this.renderGameUI();
+        document.getElementById('gameContainer').style.display = 'block';
+        document.getElementById('defaultContent').style.display = 'none';
         this.setupEventListeners();
         this.setupSwipeGestures();
     },
