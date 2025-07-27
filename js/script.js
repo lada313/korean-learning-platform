@@ -324,20 +324,41 @@ class KoreanLearningApp {
     }
 
     playSound(event, text) {
-        event.stopPropagation();
-        if (this.synth.speaking) {
-            this.synth.cancel();
-        }
-
-        if (this.voices.length > 0) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.voice = this.voices[0];
-            utterance.lang = 'ko-KR';
-            this.synth.speak(utterance);
-        } else {
-            alert('Корейский голос не доступен. Пожалуйста, добавьте корейский голос в настройках вашего браузера.');
-        }
+    event.stopPropagation();
+    event.preventDefault();
+    
+    // Анимация кнопки
+    const btn = event.target.closest('.sound-btn');
+    if (btn) {
+        btn.style.transform = btn.style.transform.includes('scale(0.9)') 
+            ? 'translateX(-50%) scale(1)' 
+            : 'translateX(-50%) scale(0.9)';
     }
+
+    if (this.synth.speaking) {
+        this.synth.cancel();
+        return;
+    }
+
+    if (this.voices.length === 0) {
+        this.loadVoices();
+    }
+
+    if (this.voices.length > 0) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.voice = this.voices[0];
+        utterance.lang = 'ko-KR';
+        
+        utterance.onend = function() {
+            if (btn) btn.style.transform = 'translateX(-50%) scale(1)';
+        };
+        
+        this.synth.speak(utterance);
+    } else {
+        console.log('Korean voice not available');
+        if (btn) btn.style.transform = 'translateX(-50%) scale(1)';
+    }
+}
 
     showProgressPage() {
         document.getElementById('defaultContent').innerHTML = `
