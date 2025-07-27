@@ -2,7 +2,6 @@
     {
         "id": 1,
         "korean": "불국사",
-        "romanization": "bulguksa",
         "translation": "храм Бульгукса",
         "examples": [
             {
@@ -14,7 +13,6 @@
     {
         "id": 2,
         "korean": "남대문",
-        "romanization": "namdaemun",
         "translation": "Намдэмун",
         "examples": [
             {
@@ -26,7 +24,6 @@
     {
         "id": 3,
         "korean": "롯데월드",
-        "romanization": "roteuwoldeu",
         "translation": "Лотте Ворлд",
         "examples": [
             {
@@ -38,7 +35,6 @@
     {
         "id": 4,
         "korean": "통화",
-        "romanization": "tonghwa",
         "translation": "разговор по телефону",
         "examples": [
             {
@@ -50,7 +46,6 @@
     {
         "id": 5,
         "korean": "짜리",
-        "romanization": "jjari",
         "translation": "стоимостью",
         "examples": [
             {
@@ -62,7 +57,6 @@
     {
         "id": 6,
         "korean": "가지",
-        "romanization": "gaji",
         "translation": "баклажан",
         "examples": [
             {
@@ -74,7 +68,6 @@
     {
         "id": 7,
         "korean": "원",
-        "romanization": "won",
         "translation": "вона",
         "examples": [
             {
@@ -86,7 +79,6 @@
     {
         "id": 8,
         "korean": "들다",
-        "romanization": "deulda",
         "translation": "входить",
         "examples": [
             {
@@ -98,7 +90,6 @@
     {
         "id": 9,
         "korean": "놓다",
-        "romanization": "nota",
         "translation": "класть",
         "examples": [
             {
@@ -110,7 +101,6 @@
     {
         "id": 10,
         "korean": "내리다",
-        "romanization": "naerida",
         "translation": "выходить",
         "examples": [
             {
@@ -122,7 +112,6 @@
     {
         "id": 11,
         "korean": "나다",
-        "romanization": "nada",
         "translation": "появляться",
         "examples": [
             {
@@ -134,7 +123,6 @@
     {
         "id": 12,
         "korean": "이",
-        "romanization": "i",
         "translation": "зуб",
         "examples": [
             {
@@ -146,7 +134,6 @@
     {
         "id": 13,
         "korean": "일",
-        "romanization": "il",
         "translation": "работа",
         "examples": [
             {
@@ -158,7 +145,6 @@
     {
         "id": 14,
         "korean": "싸다",
-        "romanization": "ssada",
         "translation": "дешёвый",
         "examples": [
             {
@@ -170,7 +156,6 @@
     {
         "id": 15,
         "korean": "배",
-        "romanization": "bae",
         "translation": "корабль",
         "examples": [
             {
@@ -182,7 +167,6 @@
     {
         "id": 16,
         "korean": "조각",
-        "romanization": "jogak",
         "translation": "кусок",
         "examples": [
             {
@@ -194,7 +178,6 @@
     {
         "id": 17,
         "korean": "약",
-        "romanization": "yak",
         "translation": "лекарство",
         "examples": [
             {
@@ -206,7 +189,6 @@
     {
         "id": 18,
         "korean": "장",
-        "romanization": "jang",
         "translation": "лист",
         "examples": [
             {
