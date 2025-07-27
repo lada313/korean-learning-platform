@@ -383,9 +383,10 @@ body {
 
 /* ==================== СВАЙП ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ==================== */
 @media (max-width: 600px) {
-    .word-card {
-        touch-action: pan-y;
-    }
+.word-card {
+    will-change: transform;
+    backface-visibility: hidden;
+}
     
     .swipe-hint {
         position: absolute;
