@@ -20,8 +20,13 @@ const KoreanLearningApp = (function() {
         cacheDOMElements();
         setupEventListeners();
         loadInitialData()
-            .then(() => renderHomePage())
-            .catch(error => showErrorPage(error.message));
+            .then(() => {
+                renderHomePage();
+            })
+            .catch(error => {
+                console.error('Ошибка инициализации:', error);
+                showErrorPage('Не удалось загрузить данные');
+            });
     }
 
     function cacheDOMElements() {
@@ -30,7 +35,8 @@ const KoreanLearningApp = (function() {
         DOM.defaultContent = document.getElementById('defaultContent');
         
         if (!DOM.mainContent || !DOM.gameContainer || !DOM.defaultContent) {
-            throw new Error('Не удалось найти необходимые DOM элементы');
+            console.error('Не найдены необходимые DOM элементы');
+            return;
         }
     }
 
@@ -40,53 +46,39 @@ const KoreanLearningApp = (function() {
             const wordsResponse = await fetch('data/words.json');
             state.words = await wordsResponse.json();
             
-            // Загрузка уровней (переименованы)
+            // Загрузка уровней
             const levelsResponse = await fetch('data/levels.json');
-            state.levels = (await levelsResponse.json()).map(level => ({
-                ...level,
-                title: level.title.replace('Топонимы', '1 уровень')
-                                  .replace('Основные глаголы', '2 уровень')
-                                  .replace('Счётные слова', '3 уровень')
-            }));
+            state.levels = await levelsResponse.json();
             
+            // Переименовываем уровни
+            state.levels = state.levels.map((level, index) => ({
+                ...level,
+                title: `${index + 1} уровень`
+            }));
+
             // Загрузка прогресса
             const savedProgress = localStorage.getItem('koreanProgress');
-            if (savedProgress) state.userProgress = JSON.parse(savedProgress);
+            if (savedProgress) {
+                state.userProgress = JSON.parse(savedProgress);
+            }
         } catch (error) {
             console.error('Ошибка загрузки данных:', error);
-            throw new Error('Не удалось загрузить данные');
+            throw error;
         }
     }
 
     function setupEventListeners() {
-        document.addEventListener('click', function(e) {
-            const navItem = e.target.closest('.nav-item');
-            if (navItem) {
-                e.preventDefault();
-                navigateTo(navItem.dataset.page);
-                return;
-            }
+        // Навигация
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                navigateTo(page);
+            });
+        });
 
-            const backBtn = e.target.closest('.back-btn');
-            if (backBtn) {
-                e.preventDefault();
-                navigateTo(backBtn.dataset.page || 'home');
-                return;
-            }
-
-            const moduleCard = e.target.closest('.module-card');
-            if (moduleCard) {
-                e.preventDefault();
-                navigateTo(moduleCard.dataset.page);
-                return;
-            }
-
-            const startLevelBtn = e.target.closest('.start-level-btn');
-            if (startLevelBtn) {
-                e.preventDefault();
-                const levelId = parseInt(startLevelBtn.dataset.level);
-                startLevel(levelId);
-            }
+        // Профиль
+        document.getElementById('profileBtn')?.addEventListener('click', () => {
+            navigateTo('profile');
         });
     }
 
@@ -105,9 +97,6 @@ const KoreanLearningApp = (function() {
                 break;
             case 'cards':
                 startCardGame(state.words);
-                break;
-            case 'progress':
-                renderProgressPage();
                 break;
             case 'profile':
                 renderProfilePage();
@@ -150,17 +139,29 @@ const KoreanLearningApp = (function() {
             <div class="repetition-section">
                 <h2>Повторение</h2>
                 <p>Повторяйте изученный материал</p>
-                <button class="card-btn" data-page="cards">
+                <button class="card-btn" id="repeatBtn">
                     <i class="fas fa-redo"></i> Начать повторение
                 </button>
             </div>
         `;
+
+        // Добавляем обработчики для карточек модулей
+        document.querySelectorAll('.module-card').forEach(card => {
+            card.addEventListener('click', () => {
+                navigateTo(card.dataset.page);
+            });
+        });
+
+        document.getElementById('repeatBtn')?.addEventListener('click', () => {
+            startCardGame(state.words);
+        });
+
         showDefaultContent();
     }
 
     function renderLevelsPage() {
         const levelsHtml = state.levels.map(level => `
-            <div class="level-card">
+            <div class="level-card" data-level="${level.id}">
                 <h3>${level.title}</h3>
                 <button class="start-level-btn" data-level="${level.id}">Начать</button>
             </div>
@@ -169,12 +170,25 @@ const KoreanLearningApp = (function() {
         DOM.defaultContent.innerHTML = `
             <div class="section-title">
                 <h2>Уровни изучения</h2>
-                <button class="back-btn" data-page="home">На главную</button>
+                <button class="back-btn" id="backBtn">На главную</button>
             </div>
             <div class="levels-container">
                 ${levelsHtml}
             </div>
         `;
+
+        // Обработчики для уровней
+        document.querySelectorAll('.start-level-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const levelId = parseInt(btn.dataset.level);
+                startLevel(levelId);
+            });
+        });
+
+        document.getElementById('backBtn')?.addEventListener('click', () => {
+            navigateTo('home');
+        });
+
         showDefaultContent();
     }
 
@@ -192,15 +206,16 @@ const KoreanLearningApp = (function() {
             return;
         }
 
+        if (!window.games || !games.startCardGame) {
+            showErrorPage('Игровой модуль не загружен');
+            console.error('Games module not loaded');
+            return;
+        }
+
         try {
             DOM.defaultContent.style.display = 'none';
             DOM.gameContainer.style.display = 'block';
-            
-            if (window.games && typeof games.startCardGame === 'function') {
-                games.startCardGame(words);
-            } else {
-                throw new Error('Игровой модуль не загружен');
-            }
+            games.startCardGame(words);
         } catch (error) {
             console.error('Ошибка запуска игры:', error);
             showErrorPage('Ошибка запуска игры');
@@ -208,52 +223,67 @@ const KoreanLearningApp = (function() {
         }
     }
 
+    function renderProfilePage() {
+        DOM.defaultContent.innerHTML = `
+            <div class="section-title">
+                <h2>Профиль</h2>
+                <button class="back-btn" id="profileBackBtn">На главную</button>
+            </div>
+            <div class="profile-card">
+                <h3>Данные пользователя</h3>
+                <p>Изучено слов: ${state.userProgress.knownWords.length}</p>
+            </div>
+        `;
+
+        document.getElementById('profileBackBtn')?.addEventListener('click', () => {
+            navigateTo('home');
+        });
+
+        showDefaultContent();
+    }
+
     function showDefaultContent() {
-        DOM.gameContainer.style.display = 'none';
-        DOM.defaultContent.style.display = 'block';
+        if (DOM.gameContainer) DOM.gameContainer.style.display = 'none';
+        if (DOM.defaultContent) DOM.defaultContent.style.display = 'block';
     }
 
     function showErrorPage(message) {
-        DOM.mainContent.innerHTML = `
-            <div class="error-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>${message}</h3>
-                <button onclick="location.reload()">Перезагрузить</button>
-            </div>
-        `;
+        if (DOM.mainContent) {
+            DOM.mainContent.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>${message}</h3>
+                    <button onclick="location.reload()">Перезагрузить</button>
+                </div>
+            `;
+        }
     }
-
-    // Остальные функции рендеринга страниц...
 
     return {
         init: init,
-        showHomePage: function() { navigateTo('home'); },
-        showLevelsPage: function() { navigateTo('levels'); },
-        showCardsPage: function() { navigateTo('cards'); },
-        showProgressPage: function() { navigateTo('progress'); },
-        showProfilePage: function() { navigateTo('profile'); }
+        showHomePage: () => navigateTo('home'),
+        showLevelsPage: () => navigateTo('levels'),
+        showCardsPage: () => navigateTo('cards'),
+        showProfilePage: () => navigateTo('profile')
     };
 })();
 
+// Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
-    try {
-        KoreanLearningApp.init();
-    } catch (error) {
-        console.error('Ошибка инициализации:', error);
-        document.body.innerHTML = `
-            <div class="error-state">
-                <h3>Критическая ошибка</h3>
-                <p>${error.message}</p>
-                <button onclick="location.reload()">Перезагрузить</button>
-            </div>
-        `;
-    }
+    KoreanLearningApp.init();
 });
 
 // Глобальные методы
-window.showHomePage = () => KoreanLearningApp.showHomePage();
-window.showLevelsPage = () => KoreanLearningApp.showLevelsPage();
-window.showCardsPage = () => KoreanLearningApp.showCardsPage();
-window.showProgressPage = () => KoreanLearningApp.showProgressPage();
-window.showProfilePage = () => KoreanLearningApp.showProfilePage();
-window.startCardGame = (words) => KoreanLearningApp.startCardGame(words);
+window.showHomePage = KoreanLearningApp.showHomePage;
+window.showLevelsPage = KoreanLearningApp.showLevelsPage;
+window.showCardsPage = KoreanLearningApp.showCardsPage;
+window.showProfilePage = KoreanLearningApp.showProfilePage;
+window.startCardGame = (words) => {
+    if (window.games && games.startCardGame) {
+        document.getElementById('defaultContent').style.display = 'none';
+        document.getElementById('gameContainer').style.display = 'block';
+        games.startCardGame(words);
+    } else {
+        console.error('Games module not loaded');
+    }
+};
