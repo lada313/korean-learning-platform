@@ -10,6 +10,7 @@ class KoreanLearningApp {
         
         this.allWords = [];
         this.allLevels = [];
+        this.grammarRules = [];
         this.currentWords = [];
         this.currentCardIndex = 0;
         this.currentSessionWords = [];
@@ -17,21 +18,32 @@ class KoreanLearningApp {
         this.synth = window.speechSynthesis;
         this.voices = [];
 
+        this.initSpeechSynthesis();
         this.init();
+    }
+
+    initSpeechSynthesis() {
+        this.synth = window.speechSynthesis;
+        
+        // Двойная загрузка голосов для Яндекс.Браузера
+        const loadVoices = () => {
+            this.voices = this.synth.getVoices().filter(voice => voice.lang.includes('ko'));
+            if (this.voices.length === 0) {
+                setTimeout(() => {
+                    this.voices = this.synth.getVoices().filter(voice => voice.lang.includes('ko'));
+                    console.log('Loaded Korean voices:', this.voices);
+                }, 500);
+            }
+        };
+
+        loadVoices();
+        this.synth.onvoiceschanged = loadVoices;
     }
 
     async init() {
         await this.loadData();
-        this.loadVoices();
         this.bindEvents();
         this.showHomePage();
-    }
-
-    loadVoices() {
-        this.voices = this.synth.getVoices().filter(voice => voice.lang.includes('ko'));
-        if (this.voices.length === 0) {
-            console.warn('No Korean voices available');
-        }
     }
 
     async loadData() {
@@ -218,7 +230,16 @@ class KoreanLearningApp {
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.voice = this.voices[0];
             utterance.lang = 'ko-KR';
-            
+            utterance.rate = 0.9;
+
+            // Специальная обработка для Яндекс.Браузера
+            if (navigator.userAgent.includes('YaBrowser')) {
+                utterance.onerror = (errorEvent) => {
+                    console.error('Speech error:', errorEvent);
+                    alert('Please enable speech synthesis in browser settings');
+                };
+            }
+
             // Для iOS
             utterance.onboundary = () => {
                 const soundBtn = event.target.closest('.sound-btn');
