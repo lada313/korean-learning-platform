@@ -27,40 +27,44 @@ const games = {
             window.app.showLevelsPage();
         });
 
-        // Добавляем обработчики свайпов для мобильных устройств
         this.setupSwipeEvents(wordCard);
     },
 
     setupSwipeEvents(element) {
-        let touchStartX = 0;
-        let touchEndX = 0;
+        let xDown = null;
+        let yDown = null;
 
-element.addEventListener('touchstart', handleTouchStart, false);
-element.addEventListener('touchmove', handleTouchMove, false);
+        const handleTouchStart = (evt) => {
+            xDown = evt.touches[0].clientX;
+            yDown = evt.touches[0].clientY;
+        };
 
-let xDown = null;
+        const handleTouchMove = (evt) => {
+            if (!xDown || !yDown) return;
+            
+            let xUp = evt.touches[0].clientX;
+            let yUp = evt.touches[0].clientY;
+            
+            let xDiff = xDown - xUp;
+            let yDiff = yDown - yUp;
+            
+            if (Math.abs(xDiff) > Math.abs(yDiff)) {
+                if (Math.abs(xDiff) > 50) {
+                    if (xDiff > 0) {
+                        document.getElementById('nextCardBtn').click();
+                    } else {
+                        document.getElementById('repeatCardBtn').click();
+                    }
+                }
+            }
+            xDown = null;
+            yDown = null;
+        };
 
-function handleTouchStart(evt) {
-    xDown = evt.touches[0].clientX;
-}
-
-function handleTouchMove(evt) {
-    if (!xDown) return;
-    
-    let xUp = evt.touches[0].clientX;
-    let xDiff = xDown - xUp;
-    
-    if (Math.abs(xDiff) > 50) { // Минимальное расстояние свайпа
-        if (xDiff > 0) {
-            // Свайп влево - следующая карточка
-            document.getElementById('nextCardBtn').click();
-        } else {
-            // Свайп вправо - предыдущая карточка
-            document.getElementById('repeatCardBtn').click();
-        }
+        element.addEventListener('touchstart', handleTouchStart, false);
+        element.addEventListener('touchmove', handleTouchMove, false);
     }
-    xDown = null;
-}
+};
 
 class WordCardsGame {
     constructor(words) {
@@ -71,6 +75,7 @@ class WordCardsGame {
 
     renderCard() {
         const word = this.words[this.currentIndex];
+        const example = word.examples ? word.examples[0] : null;
         
         return `
             <div class="section-title">
@@ -80,13 +85,32 @@ class WordCardsGame {
                 </button>
             </div>
             <div class="word-card" id="wordCard">
+                <div class="swipe-hint">
+                    <i class="fas fa-arrow-left"></i> Свайп для переключения <i class="fas fa-arrow-right"></i>
+                </div>
                 <div class="card-inner">
                     <div class="card-front">
-                        <div class="word-korean">${word?.korean || ''}</div>
-                        <div class="word-romanization">${word.romanization || ''}</div>
+                        <div class="word-header">
+                            <div class="word-korean">${word.korean}</div>
+                            <button class="sound-btn" onclick="app.playSound(event, '${word.korean}')">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-back">
                         <div class="word-translation">${word.translation}</div>
+                        ${example ? `
+                        <div class="word-example">
+                            <div class="example-header">
+                                <span>Пример:</span>
+                                <button class="sound-btn" onclick="app.playSound(event, '${example.korean}')">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            </div>
+                            <div class="example-korean">${example.korean}</div>
+                            <div class="example-translation">${example.translation}</div>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
                 <div class="card-controls">
@@ -128,14 +152,31 @@ class WordCardsGame {
     updateCard() {
         const word = this.words[this.currentIndex];
         const wordCard = document.getElementById('wordCard');
+        const example = word.examples ? word.examples[0] : null;
         
         wordCard.querySelector('.card-front').innerHTML = `
-            <div class="word-korean">${word.korean}</div>
-            <div class="word-romanization">${word.romanization || ''}</div>
+            <div class="word-header">
+                <div class="word-korean">${word.korean}</div>
+                <button class="sound-btn" onclick="app.playSound(event, '${word.korean}')">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            </div>
         `;
         
         wordCard.querySelector('.card-back').innerHTML = `
             <div class="word-translation">${word.translation}</div>
+            ${example ? `
+            <div class="word-example">
+                <div class="example-header">
+                    <span>Пример:</span>
+                    <button class="sound-btn" onclick="app.playSound(event, '${example.korean}')">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+                <div class="example-korean">${example.korean}</div>
+                <div class="example-translation">${example.translation}</div>
+            </div>
+            ` : ''}
         `;
         
         wordCard.querySelector('.progress').textContent = 
