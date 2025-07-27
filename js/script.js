@@ -16,8 +16,6 @@ class KoreanLearningApp {
         this.wordsToRepeat = [];
         this.synth = window.speechSynthesis;
         this.voices = [];
-        this.touchStartX = 0;
-        this.touchEndX = 0;
 
         this.init();
     }
@@ -27,14 +25,12 @@ class KoreanLearningApp {
         this.loadVoices();
         this.bindEvents();
         this.showHomePage();
-        
-        setTimeout(() => this.loadVoices(), 1000);
     }
 
     loadVoices() {
         this.voices = this.synth.getVoices().filter(voice => voice.lang.includes('ko'));
         if (this.voices.length === 0) {
-            console.warn('Korean voices not available');
+            console.warn('No Korean voices available');
         }
     }
 
@@ -49,6 +45,8 @@ class KoreanLearningApp {
             this.allWords = await wordsResponse.json();
             this.allLevels = await levelsResponse.json();
             this.grammarRules = await grammarResponse.json();
+            
+            console.log("Данные успешно загружены");
         } catch (error) {
             console.error("Ошибка загрузки:", error);
             this.showErrorPage("Ошибка загрузки данных");
@@ -209,10 +207,12 @@ class KoreanLearningApp {
             <div class="word-card" id="wordCard">
                 <div class="card-inner">
                     <div class="card-front">
-                        <div class="word-korean">${currentWord.korean}</div>
-                        <button class="sound-btn sound-btn-front" onclick="app.playSound(event, '${currentWord.korean}')">
-                            <i class="fas fa-volume-up"></i>
-                        </button>
+                        <div class="word-header">
+                            <div class="word-korean">${currentWord.korean}</div>
+                            <button class="sound-btn" onclick="app.playSound(event, '${currentWord.korean}')">
+                                <i class="fas fa-bullhorn"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-back">
                         <div class="word-translation">${currentWord.translation}</div>
@@ -221,7 +221,7 @@ class KoreanLearningApp {
                             <div class="example-header">
                                 <span>Пример:</span>
                                 <button class="sound-btn" onclick="app.playSound(event, '${example.korean}')">
-                                    <i class="fas fa-volume-up"></i>
+                                    <i class="fas fa-bullhorn"></i>
                                 </button>
                             </div>
                             <div class="example-korean">${example.korean}</div>
@@ -246,16 +246,6 @@ class KoreanLearningApp {
         const nextBtn = document.getElementById('nextCardBtn');
         const repeatBtn = document.getElementById('repeatCardBtn');
         const exitBtn = document.getElementById('exitCardsBtn');
-
-        // Обработчики свайпа
-        wordCard.addEventListener('touchstart', (e) => {
-            this.touchStartX = e.changedTouches[0].screenX;
-        }, {passive: true});
-
-        wordCard.addEventListener('touchend', (e) => {
-            this.touchEndX = e.changedTouches[0].screenX;
-            this.handleSwipe();
-        }, {passive: true});
 
         wordCard.addEventListener('click', (e) => {
             if (e.target.closest('.sound-btn') || e.target.closest('.card-controls')) return;
@@ -297,20 +287,6 @@ class KoreanLearningApp {
         this.updateNavActiveState('cards');
     }
 
-    handleSwipe() {
-        const diff = this.touchStartX - this.touchEndX;
-        const swipeThreshold = 50;
-
-        if (diff > swipeThreshold) {
-            document.getElementById('nextCardBtn').click();
-        } else if (diff < -swipeThreshold) {
-            this.currentCardIndex = Math.max(0, this.currentCardIndex - 1);
-            const word = this.currentSessionWords[this.currentCardIndex];
-            this.updateCard(word);
-            document.getElementById('wordCard').classList.remove('flipped');
-        }
-    }
-
     updateCard(word) {
         const wordCard = document.getElementById('wordCard');
         const front = wordCard.querySelector('.card-front');
@@ -320,10 +296,12 @@ class KoreanLearningApp {
         const example = word.examples ? word.examples[0] : null;
         
         front.innerHTML = `
-            <div class="word-korean">${word.korean}</div>
-            <button class="sound-btn sound-btn-front" onclick="app.playSound(event, '${word.korean}')">
-                <i class="fas fa-volume-up"></i>
-            </button>
+            <div class="word-header">
+                <div class="word-korean">${word.korean}</div>
+                <button class="sound-btn" onclick="app.playSound(event, '${word.korean}')">
+                    <i class="fas fa-bullhorn"></i>
+                </button>
+            </div>
         `;
         
         back.innerHTML = `
@@ -333,7 +311,7 @@ class KoreanLearningApp {
                 <div class="example-header">
                     <span>Пример:</span>
                     <button class="sound-btn" onclick="app.playSound(event, '${example.korean}')">
-                        <i class="fas fa-volume-up"></i>
+                        <i class="fas fa-bullhorn"></i>
                     </button>
                 </div>
                 <div class="example-korean">${example.korean}</div>
@@ -347,15 +325,8 @@ class KoreanLearningApp {
 
     playSound(event, text) {
         event.stopPropagation();
-        event.preventDefault();
-        
         if (this.synth.speaking) {
             this.synth.cancel();
-            return;
-        }
-
-        if (this.voices.length === 0) {
-            this.loadVoices();
         }
 
         if (this.voices.length > 0) {
@@ -364,7 +335,7 @@ class KoreanLearningApp {
             utterance.lang = 'ko-KR';
             this.synth.speak(utterance);
         } else {
-            console.log('Korean voice not available');
+            alert('Корейский голос не доступен. Пожалуйста, добавьте корейский голос в настройках вашего браузера.');
         }
     }
 
@@ -432,8 +403,3 @@ class KoreanLearningApp {
         `;
     }
 }
-
-// Инициализация приложения
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new KoreanLearningApp();
-});
